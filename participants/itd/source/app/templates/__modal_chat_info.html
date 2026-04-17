@@ -1,0 +1,48 @@
+<div class="modal fade" id="chatInfoModalCenter" tabindex="-1" role="dialog" aria-labelledby="chatInfoModalCenter" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title white-text" id="exampleModalCenterTitle">ПРИСОЕДИНЯЙСЯ К ЧАТ-БОТУ!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body white-text">
+                <p>
+                    Виртуальный помощник Харза ждет вас в мессенджере Telegram.
+                    Там вы сможете получить подробную информацию о предстоящей конференции, задать вопросы спикерам и выиграть крутые призы!
+
+                </p>
+                <span class="white-text">Чтобы подключиться к чат-боту Харза, нужно:</span>
+                <ol class="white-text">
+                    <li>Установить телеграм на ваше устройство. Вот ссылки:
+                        <ul class="list-unstyled mb-1">
+                            <li>
+                                <a href="https://apps.apple.com/ru/app/telegram-messenger/id686449807" target="_blank" class="btn login-btn col white mb-1">iPhone</a>
+                                <a href="https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=ru" target="_blank" class="btn login-btn col white mb-1">Android</a>
+                                <a href="https://telegram-pc.ru/files/tsetup.2.0.1.exe" target="_blank" class="btn login-btn col white mb-1">Windows</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+                <span class="white-text">Если телеграм установлен:</span>
+                <ol class="white-text">
+                    <li>Нажать ниже кнопку <b>"Подключиться к чат-боту"</b></li>
+                    <li>Нажать в боте кнопку <b>"Start"</b></li>
+                    <li>Бот попросит вас прислать ему вашу электронную почту, которую вы ввели при регистрации</li>
+                    <li>Отправьте боту вашу электронную почту</li>
+                </ol>
+{#                <div class="copy-text text-center">#}
+{#                    <b class="for-copy" style="font-size: x-large!important;">{{ current_user.code }}</b>#}
+{#                </div>#}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info stream-btn" style="padding: 10px" data-dismiss="modal">ЗАКРЫТЬ</button>
+                <a href="{{ "https://t.me/" + bot_name }}" target="_blank">
+                    <button type="button" style="padding: 10px" class="btn btn-info stream-btn">ПОДКЛЮЧИТЬСЯ К ЧАТ-БОТУ</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for("static", filename="js/script.js") }}"></script>

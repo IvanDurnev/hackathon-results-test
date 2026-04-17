@@ -1,4 +1,8 @@
-{% extends 'admin/base_admin.html' %}
+{% extends 'base.html' %}
+
+{% block navbar %}
+    {% include 'admin/__admin_side_nav.html' %}
+{% endblock %}
 
 {% block content %}
     {% include 'admin/__all_users_table.html' %}

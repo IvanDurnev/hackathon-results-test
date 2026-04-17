@@ -13,15 +13,9 @@
 
                     {{ create_moderator_form.group.label }}
                     {{ create_moderator_form.group(class='form-control') }}
-                    {% for error in create_moderator_form.group.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                    {% endfor %}
 
-                    {{ create_moderator_form.user.label }}
-                    {{ create_moderator_form.user(class='form-control') }}
-                    {% for error in create_moderator_form.user.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                    {% endfor %}
+                    {{ create_moderator_form.tg_id.label }}
+                    {{ create_moderator_form.tg_id(class='form-control') }}
 
                     {{ create_moderator_form.submit(class="btn btn-lg btn-primary form-control") }}
                 </form>

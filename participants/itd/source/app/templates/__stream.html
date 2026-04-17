@@ -1,0 +1,45 @@
+<div class="text-center container-fluid">
+    <div class="row stream-container">
+{#        <iframe class="col" id="stream" src="{{ stream_link }}" width="1920" height="1080" style="border:none" allowfullscreen></iframe>#}
+{#        <iframe class="col" id="stream" width="560" height="315" src="https://www.youtube.com/embed/BhMrTsFXiOc?controls=0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>#}
+        <iframe class="col" id="stream" src="https://vk.com/video_ext.php?oid=598547871&id=456239040&hash=c6eebdb711e9338d" frameborder="0" allowfullscreen></iframe>
+    </div>
+{#    {% include '__chat.html' %}#}
+    <div class="row text-center but-container" style="margin-bottom: 3%">
+        <a class="btn col-md btn-block stream-btn" data-toggle="modal" data-target="#streamInfoModalCenter">{{ "Программа"|upper }}</a>
+        <a class="btn col-md btn-block stream-btn" data-toggle="modal" data-target="#speakersInfoModalCenter">{{ "Спикеры"|upper }}</a>
+        <!-- <a class="btn col-md btn-block stream-btn" data-toggle="modal" data-target="#chatInfoModalCenter">{{ "Чат-бот"|upper }}</a> -->
+        <!-- <a class="btn col-md btn-block stream-btn" href="https://us02web.zoom.us/j/89858955986" target="_blank">{{ "Мастер-класс"|upper }}</a> -->
+    </div>
+    <div class="row">
+        <div class="input-group mb-3">
+            <input id="socket-message-text" type="text" class="form-control" placeholder="Ваше сообщение" aria-label="Recipient's username" aria-describedby="button-addon2">
+            <div class="input-group-append">
+                <div class="separator"></div>
+                <button class="btn btn-outline-secondary send-socket-message" type="button" id="button-addon2">ОТПРАВИТЬ</button>
+            </div>
+        </div>
+    </div>
+{#    <div class="row but-container hide">#}
+{#        <a class="btn btn-info col stream-btn text-center" data-toggle="modal" data-target="">{{ "а"|upper }}</a>#}
+{#        <a class="btn btn-info col stream-btn" data-toggle="modal" data-target="">{{ "б"|upper }}</a>#}
+{#        <a class="btn btn-info col stream-btn" data-toggle="modal" data-target="">{{ "в"|upper }}</a>#}
+{#        <a class="btn btn-info col stream-btn" data-toggle="modal" data-target="">{{ "г"|upper }}</a>#}
+{#    </div>#}
+
+</div>
+<script>
+    resizeStream();
+    window.onresize=resizeStream;
+    function resizeStream() {
+        let windowWidth = window.innerWidth;
+        if (windowWidth>980) {
+            let streamWidth = windowWidth/(2.3);
+            let streamHeight = streamWidth*1080/1920;
+            $('#stream').width(streamWidth);
+            $('#stream').height(streamHeight);
+            {#console.log(window.innerHeight/window.innerWidth)#}
+        }
+
+    }
+</script>

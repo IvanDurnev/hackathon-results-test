@@ -1,0 +1,25 @@
+<nav class="navbar navbar-expand-md navbar-dark container-fluid text-right">
+    <a href="#" class="navbar-brand">
+        <img src="{{ url_for("static", filename="images/logo.png") }}" alt="logo">
+    </a>
+    <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#user-controls" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="user-controls">
+        <ul class="navbar-nav">
+            <li class="nav-item small">
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">
+                    {{ current_user.username }} ({{ current_user.first_name + ' ' + current_user.last_name }})
+                </a>
+            </li>
+            {% if current_user.role == 'admin' or current_user.role == 'moderator' %}
+                <li class="nav-item small">
+                    <a class="nav-link" href="{{ url_for('admin.admin') }}" tabindex="-1" aria-disabled="true">Админка</a>
+                </li>
+            {% endif %}
+            <li class="nav-item small">
+                <a class="nav-link" href="{{ url_for('auth.logout') }}" tabindex="-1" aria-disabled="true">Выйти</a>
+            </li>
+        </ul>
+    </div>
+</nav>

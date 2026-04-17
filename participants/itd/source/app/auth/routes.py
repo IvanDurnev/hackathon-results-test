@@ -1,9 +1,12 @@
+from datetime import datetime
 from app import db, mail
 from app.auth import bp
 from flask_login import login_user, logout_user, current_user
 from flask import render_template, redirect, url_for, flash, request
 from app.models import User, Group
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
+from string import ascii_letters
+from random import choice
 from app import Config
 from flask_mail import Message
 
@@ -16,55 +19,44 @@ def logout():
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    title = 'Задачник'
+    title = 'ТУРИСТИЧЕСКИЙ ФОРУМ «ТУРИЗМ 2.1: МЫСЛИМ ПО-НОВОМУ»'
+    bot_name = Config.BOT_NAME
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.index', bot_name=bot_name))
     form = LoginForm()
     if form.validate_on_submit():
-        user: User = User.query.filter(User.private_number == form.login.data).first()
-        # if user is None or not user.check_password(form.password.data):
-        #     flash('Неверный адрес электронной почты или пароль. Если вы не регистрировались, нажмите кнопку "ЗАРЕГИСТРИРОВАТЬСЯ" ниже')
-        #     return redirect(url_for('auth.login'))
-        if user is None:
-            flash('Нет сотрудника с таким табельным номером. Возможно, вы ошиблись при вводе.')
+        user = User.query.filter_by(email = form.login.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Неверный адрес электронной почты или пароль. Если вы не регистрировались, нажмите кнопку "ЗАРЕГИСТРИРОВАТЬСЯ" ниже')
             return redirect(url_for('auth.login'))
         login_user(user, remember=bool(form.remember_me.data))
-        return redirect(url_for('main.index'))
-    return render_template('auth/login.html',
-                           form=form,
-                           title=title)
+        user.last_visit = datetime.now()
+        db.session.merge(user)
+        db.session.commit()
+        # if not current_user.tg_id:
+        #     return render_template('auth/join_telegram.html', title='Подключитесь к нашему боту', bot_name=bot_name)
+        return redirect(url_for('main.index')) #, bot_name=bot_name))
+    return render_template('auth/login.html', form=form, title=title) #, bot_name=bot_name)
 
 
 @bp.route('/registration', methods=['GET', 'POST'])
 def register():
     bot_name = Config.BOT_NAME
     invited_user = None
-    user_tg_id = None
-    form = RegistrationForm()
     if request.args:
         if 'u' in request.args:
             invited_user = User.query.get(request.args['u'])
-        elif 'user_tg_id' in request.args:
-            user_tg_id = form.tg_id.data = request.args['user_tg_id']
-            user: User = User.query.filter(User.tg_id == user_tg_id).first()
-            form.first_name.data = user.first_name
-    form.group.choices = [(str(group.id), group.name) for group in Group.query.all()]
     title = 'Регистрация'
-
     if current_user.is_authenticated:
         return redirect(url_for('main.index', bot_name=bot_name))
-
+    form = RegistrationForm()
+    # form.region.choices = [(region.name, region.name) for region in Region.query.all()]
     if form.validate_on_submit():
-        if form.tg_id.data:
-            user: User = User.query.filter(User.tg_id == form.tg_id.data).first()
-        else:
-            user = User()
-        # user.username = form.username.data
-        if form.tg_id.data:
-            user.tg_id = form.tg_id.data
+        user = User()
+        user.username = form.username.data
         user.first_name = form.first_name.data
         user.last_name = ''
-        user.email = form.email.data.lower()
+        user.email = form.email.data
         user.phone = form.phone.data
         user.is_bot = False
         user.role = 'user'
@@ -77,14 +69,8 @@ def register():
         if invited_user:
             invited_user.his_invited_users.append(user)
             db.session.commit()
-        if form.tg_id.data == '':
-            return redirect(url_for('auth.login'))
-        return redirect(f'https://t.me/{Config.BOT_NAME}?start=userid_{user.id}')
-    return render_template('auth/register.html',
-                           form=form,
-                           title=title,
-                           bot_name=bot_name,
-                           user_tg_id=user_tg_id)
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html', form=form, title=title, bot_name=bot_name)
 
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
@@ -129,8 +115,8 @@ def send_email(subject, sender, recipients, text_body, html_body):
 def send_password_reset_email(user):
     token = user.get_reset_password_token()
     send_email(
-        subject='Восстановление пароля на online-2capitals',
-        sender=Config.MAIL_DEFAULT_SENDER,
+        subject='Восстановление пароля. Амуртуризм онлайн.',
+        sender=Config.MAIL_USERNAME,
         recipients=[user.email],
         text_body=render_template('email/reset_password.txt', user=user, token=token),
         html_body=render_template('email/reset_password.html', user=user, token=token)

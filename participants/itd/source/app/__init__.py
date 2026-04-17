@@ -4,22 +4,16 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
 from config import Config
-import telegram
-import logging
-from telegram.ext import Dispatcher
+from telegramAPI import Bot
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'auth.login'
-login.login_message = u'Пожалуйста, авторизуйтесь, чтобы попасть в систему.'
+login.login_message = u'Пожалуйста, авторизуйтесь, чтобы попасть на страницу трансляции.'
 mail = Mail()
-
-bot = telegram.Bot(token=Config.TG_TOKEN)
-dispatcher = Dispatcher(bot=bot, update_queue=None, use_context=True)
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+bot = Bot(Config.TG_TOKEN)
 
 
 def create_app(config_class=Config):

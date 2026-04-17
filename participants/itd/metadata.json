@@ -1,9 +1,9 @@
 {
   "team_name": "ITD",
-  "repo_url": "",
+  "repo_url": "https://github.com/IvanDurnev/harza",
   "video_url": "https://github.com/IvanDurnev/rosatom",
-  "last_sync": "2026-04-17T20:59:45+00:00",
-  "repo_accessible": false,
-  "last_processed_commit": null,
+  "last_sync": "2026-04-17T21:01:09+00:00",
+  "repo_accessible": true,
+  "last_processed_commit": "24d49ba00501235a753f298b35cad494cf37f8b7",
   "deleted_by_user": false
 }

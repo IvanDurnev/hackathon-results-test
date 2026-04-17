@@ -1,62 +1,66 @@
-{% extends 'main/base.html' %}
+{% extends 'auth/auth_base.html' %}
 {% block content %}
-    <form class="container col-sm-4 form-signin text-center" action="" method="post" style="padding: 2%">
+    <form class="form-signin text-center" action="" method="post" style="padding: 2%">
         <h3 class="white-text text-center">РЕГИСТРАЦИЯ</h3>
         {{ form.hidden_tag() }}
         <p>
-            {{ form.first_name.label(class='') }}<br>
-            {{ form.first_name(size=32, class='col-sm-12', type='text', placeholder='Ваше имя') }}<br>
+            {{ form.username.label(class='white-text') }}<br>
+            {{ form.username(size=32, class='col-sm-12', type='text', placeholder='Иванов Иван Иванович') }}<br>
+            {% for error in form.username.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.first_name.label(class='white-text') }}<br>
+            {{ form.first_name(size=32, class='col-sm-12', type='text', placeholder='ООО "Турпродукт"') }}<br>
             {% for error in form.first_name.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>
-            {{ form.last_name.label(class='') }}<br>
-            {{ form.last_name(size=32, class='col-sm-12', type='text', placeholder='Ваша фамилия') }}<br>
+            {{ form.last_name.label(class='white-text') }}<br>
+            {{ form.last_name(size=32, class='col-sm-12', type='text', placeholder='маркетолог') }}<br>
             {% for error in form.last_name.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>
-            {{ form.email.label(class='') }}<br>
+            {{ form.email.label(class='white-text') }}<br>
             {{ form.email(size=64, class='col-sm-12', type='email', placeholder='Внимательно') }}<br>
             {% for error in form.email.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
+{#        <p>#}
+{#            {{ form.region.label(class='white') }}<br>#}
+{#            {{ form.region(class='col-sm-12') }}#}
+{#            {% for error in form.region.errors %}#}
+{#                <span style="color: red;">[{{ error }}]</span>#}
+{#            {% endfor %}#}
+{#        </p>#}
         <p>
-            {{ form.group.label(class='') }}<br>
-            {{ form.group(class='col-sm-12 form-control') }}
-            {% for error in form.group.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.phone.label(class='') }}<br>
+            {{ form.phone.label(class='white-text') }}<br>
             {{ form.phone(size=32, class='col-sm-12', placeholder='+7 (___) ___-__-__', type='tel', id='phone') }}<br>
             {% for error in form.phone.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>
-            {{ form.password.label(class='') }}<br>
+            {{ form.password.label(class='white-text') }}<br>
             {{ form.password(size=32, class='col-sm-12', type='password') }}<br>
             {% for error in form.password.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>
-            {{ form.password2.label(class='') }}<br>
+            {{ form.password2.label(class='white-text') }}<br>
             {{ form.password2(size=32, class='col-sm-12', type='password') }}<br>
             {% for error in form.password2.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        {{ form.tg_id(size=32, class='col-sm-12', type='number', readonly='True', hidden='hidden') }}<br>
-        {{ form.submit(class="form-control btn btn-info") }}
-        {% if not user_tg_id %}
-            <a class="form-control btn btn-info mt-3" href="{{ url_for('auth.login') }}" style="padding: 10px;">УЖЕ РЕГИСТРИРОВАЛИСЬ?</a>
-        {% endif %}
+        {{ form.submit(class="form-control btn btn-block  login-btn") }}
+        <a class="form-control btn btn-block  login-btn" href="{{ url_for('auth.login') }}" style="padding: 10px;">УЖЕ РЕГИСТРИРОВАЛИСЬ?</a>
     </form>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/jquery.maskedinput.js') }}"></script>

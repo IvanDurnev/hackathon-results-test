@@ -1,0 +1,29 @@
+*{
+    box-sizing: border-box;
+}
+
+.menu{
+    background-color: #393939;
+    min-height: 100vh;
+    max-height: 100vh;
+}
+
+.btn{
+    color: white !important;
+}
+
+.second-menu{
+    background-color: #ECECEC;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.nav-link{
+    color: #fff;
+}
+
+.third-menu {
+    max-height: 100vh;
+    overflow-y: auto;
+}
+

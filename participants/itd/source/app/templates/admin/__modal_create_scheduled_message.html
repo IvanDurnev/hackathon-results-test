@@ -10,24 +10,41 @@
             <div class="modal-body">
                 <form class="container col-sm-6 form-signin" action="" method="post" style="padding: 2%" enctype="multipart/form-data">
                     {{ form.hidden_tag() }}
-
-                    {{ form.message_type.label }}
-                    {{ form.message_type(class='col-sm-12 form-control') }}<br>
-                    {% for error in form.message_type.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                    {% endfor %}
-
-                    {{ form.date_time.label }}
-                    {{ form.date_time(class='col-sm-12 form-control', placeholder='2020-12-31 00:00:00', id='send-time', type='datetime') }}<br>
-                    {% for error in form.date_time.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                    {% endfor %}
-
-                    {{ form.text.label }}
-                    {{ form.text(class='col-sm-12 form-control') }}<br>
-                    {% for error in form.text.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
-                    {% endfor %}
+                    <p>
+                        {{ form.task_type.label }}
+                        {{ form.task_type(class='col-sm-12 form-control') }}<br>
+                        {% for error in form.task_type.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                    <p>
+                        {{ form.message_type.label }}
+                        {{ form.message_type(class='col-sm-12 form-control') }}<br>
+                        {% for error in form.message_type.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                    <p>
+                        {{ form.date_time.label }}
+                        {{ form.date_time(class='col-sm-12 form-control', type='datetime') }}<br>
+                        {% for error in form.date_time.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                    <p>
+                        {{ form.interval.label }}
+                        {{ form.interval(class='col-sm-12 form-control') }}<br>
+                        {% for error in form.interval.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                    <p>
+                        {{ form.text.label }}
+                        {{ form.text(class='col-sm-12 form-control') }}<br>
+                        {% for error in form.text.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
 
                     {{ form.content_link.label }}
                     {{ form.content_link(class='form-control') }}<br>

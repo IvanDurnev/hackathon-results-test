@@ -1,181 +1,325 @@
-from datetime import datetime, time
-from app import db
 from app.main import bp
-from flask import render_template, request, redirect, jsonify
+from flask import render_template, redirect, url_for, request, send_from_directory
 from flask_login import login_required, current_user
-from app.main.forms import CreateOrder, CreateNote
-from app.models import OrderTypes, Tag, Order, CustomInputs, Note, OrderComments, User
-from werkzeug.utils import secure_filename
+from app.admin.forms import SendTGMessageForm
+from app import bot, db
+from app.models import Group, ScheduledMessage, User, Message, ChatMessages
+from app.telegram_bot import texts
+from app.telegram_bot import routes as tg_routes
+import asyncio
+from datetime import datetime, timedelta
 from config import Config
-import os
-import subprocess
-import random
-import speech_recognition as sr
+import time
 import json
+import math
+import threading
+from app.telegram_bot.chat_commands import send_quiz
+import xlsxwriter
+import os
+
 
 
 @bp.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    title = 'Главная'
-
-    # Я поставил
-    orders_iam_creator = current_user.get_orders_iam_creator()
-
-    # Мне поставили
-    orders_iam_executor = current_user.get_orders_iam_executor()
-
-    create_order_form = CreateOrder()
-    for order_type in OrderTypes.query.all():
-        create_order_form.type.choices.append((str(order_type.id), order_type.title))
-
-    create_order_form.executors.choices.append(('0', 'не выбрано'))
-    for tag in Tag.query.all():
-        create_order_form.executors.choices.append((str(tag.id), tag.name))
-
-
-    create_note_form = CreateNote()
-
-    if create_order_form.validate_on_submit():
-        all_fields = request.form
-        custom_fields = {}
-        personal_executors = []
-        for field in all_fields:
-            if 'field' in field.split('-'):
-                custom_fields[field.split('-')[0]] = all_fields[field]
-            if 'executor' in field.split('-'):
-                personal_executors.append(User.query.get(field.split('-')[-1]))
-
-        order = Order()
-        order.creator = current_user.id
-        order.base_order = create_order_form.baseorder.data
-        order.title = create_order_form.title.data
-        order.description = create_order_form.description.data
-        order.description_sound = create_order_form.file.data
-        order.priority = create_order_form.priority.data
-        order.type = create_order_form.type.data
-        order.interval = create_order_form.interval.data
-        order.deadline = create_order_form.deadline.data
-
-        for field in all_fields:
-            if 'file_id' in field:
-                order.description_sound = f'{all_fields["file_id"]}sound.ogg'
-                # print(os.path.join(Config.UPLOAD_FOLDER, f'{all_fields["file_id"]}sound.wav'))
-
-        order.status = 1
-
-        if create_order_form.executors.data != '0':
-            tag = Tag.query.filter(Tag.id == create_order_form.executors.data).first()
-            for user in tag.users:
-                order.executors.append(user)
-        if personal_executors:
-            for user in personal_executors:
-                order.executors.append(user)
-
-        order.reactions = json.dumps(custom_fields)
-
-        db.session.add(order)
-        db.session.commit()
-        return redirect(request.referrer)
-
-    if create_note_form.validate_on_submit():
-        note = Note()
-        note.creator = current_user.id
-        note.text = create_note_form.text.data
-
-        all_fields = request.form
-        for field in all_fields:
-            if 'file_id' in field:
-                note.sound_file = os.path.join(Config.UPLOAD_FOLDER, f'{all_fields["file_id"]}sound.wav')
-
-        db.session.add(note)
-        db.session.commit()
-        return redirect(request.referrer)
-
-    return render_template('main/index.html',
-                           title=title,
-                           create_order_form=create_order_form,
-                           create_note_form = create_note_form,
-                           orders_iam_creator=orders_iam_creator,
-                           orders_iam_executor=orders_iam_executor,
-                           custom_inputs=CustomInputs.query.all(),
-                           list=list, reversed=reversed)
+    bot_name = Config.BOT_NAME
+    stream_link = Config.STREAM_LINK
+    vidget_prefix = Config.VIDGET_PREFIX
+    if request.args:
+        if 'u' in request.args:
+            print(request.args['u'])
+    send_tg_mes_form = SendTGMessageForm()
+    if send_tg_mes_form.validate_on_submit():
+        region = Group.query.filter_by(name=current_user.region).first()
+        moderator = region.moderator
+        if current_user.tg_id:
+            text = f'{texts.tg_user_mention(current_user)} {send_tg_mes_form.text.data}'
+        else:
+            text = f'*{current_user.id} {current_user.username} ({current_user.first_name} {current_user.last_name}):* {send_tg_mes_form.text.data}'
+        asyncio.run(bot.send_message(chat_id=moderator,
+                                     text=text,
+                                     parse_mode='Markdown'))
+        return redirect(url_for('main.index', bot_name=bot_name))
+    title = 'ТУРИСТИЧЕСКИЙ ФОРУМ «ТУРИЗМ 2.1: МЫСЛИМ ПО-НОВОМУ»'
+    return render_template('index.html',
+                           send_tg_mes_form=send_tg_mes_form,
+                           bot_name=bot_name,
+                           stream_link=stream_link,
+                           vidget_prefix=vidget_prefix,
+                           title=title)
 
 
-@bp.route("/get_preset/<id>")
-def get_preset(id):
-    preset = CustomInputs.query.filter_by(id=id).first()
-    return jsonify(preset.preset)
+@bp.route('/cron')
+def cron():
+    tasks = ScheduledMessage.query.order_by(ScheduledMessage.date_time).all()
+    all_tg_users = User.query.filter(User.tg_id.is_(not None)).all()
+    groups = Group.query.all()
+    time_zones = {}
+    for group in groups:
+        time_zones[group.name] = datetime.now() + timedelta(hours=int(group.time_zone)) - timedelta(hours=int(Config.SERVER_TIME_ZONE))
 
-@bp.route('/get_order_json/<id>')
-def get_order_json(id):
-    order = Order.query.filter_by(id=id).first()
-    return jsonify({
-            x[0]: [
-                g.strftime('%Y-%m-%d %H:%M:%S') if type(g) == datetime else g for g in [x[1]]
-                ][0]
-            for x in order.__dict__.items() if type(x[1]) == int or type(x[1]) == datetime or type(x[1]) == str or type(x[1]) == list
-        })
+    # asyncio.run(bot.send_message(chat_id=253393695, text=f'Заданий запланировано {len(tasks)}\nПользователей с телегой {len(all_tg_users)}'))
 
-@bp.route('/recognize_file', methods=['GET', 'POST'])
-def recognize_file():
-    if request.method == 'POST':
-        # print(request.files)
-        voice_rec = request.files['audio'] # надо взять аудиофайл из POST запроса
-        rand = str(random.randint(100000,1000000))
-        filename =  rand + secure_filename(voice_rec.filename)
-        voice_rec.save(os.path.join(Config.UPLOAD_FOLDER, filename))
-        subprocess.run(['ffmpeg', '-i', os.path.join(Config.UPLOAD_FOLDER, filename), os.path.join(Config.UPLOAD_FOLDER, filename.replace('ogg', 'wav'))])
-        with sr.AudioFile(os.path.join(Config.UPLOAD_FOLDER, filename.replace('ogg', 'wav'))) as s:
-            r = sr.Recognizer()
-            txt = r.listen(s)
-            text = r.recognize_google(txt, language = 'ru-RU')
-            return jsonify({'stt': text, 'file_id': int(rand)})
+    for task in tasks:
+        hasnt_received = []
+        for user in list(all_tg_users):
+            if user.group:
+                now = time_zones[user.get_group().name]
+                delta = (task.date_time-now).days
+                # Если delta>0, то это сообщения будущие, их пользователь не должен видеть
+                if delta < 0 and user not in task.receivers:
+                    hasnt_received.append(user)
+                # если delta = 0, то это сегодняшнее сообщение, оно должно уйти пользователю в то время,
+                # которое указано в рассылке +- 5 минут
+                elif delta >= 0:
+                    # вычисляем разницу в секундах
+                    delta_seconds = (task.date_time - now).total_seconds()
+                    # delta_seconds - разница в секундах между текущим временем и временем запланированной рассылки
+                    # пока delta_seconds больше нуля - эту рассылку пользователю высылать рано
+                    if delta_seconds <= 0 and user not in task.receivers:
+                        hasnt_received.append(user)
 
+        # asyncio.run(bot.send_message(chat_id=253393695,
+        #                              text=f'Сообщение {json.loads(task.text)}:\n'
+        #                                   f'Отправлено {len(task.receivers)} пользователям\n'
+        #                                   f'Не отправлено {len(hasnt_received)} пользователям'))
 
-@bp.route('/get_note_<note_id>', methods=['GET'])
-def get_note(note_id):
-    return render_template('main/__noteData.html',
-                           note = Note.query.get(note_id))
-
-
-@bp.route('/get_order_<order_id>', methods=['GET'])
-def get_order(order_id):
-    comments = OrderComments.query.filter(OrderComments.order == order_id).order_by(OrderComments.creation_date).all()
-    derived_orders=Order.query.filter_by(base_order=order_id).all()
-    if len(derived_orders) > 0:
-        orders_stats = {"ready": len(Order.query.filter_by(base_order=order_id, done=True).all()), "total": len(derived_orders)}
-    else:
-        orders_stats = {}
-    return render_template('main/__orderData.html',
-                           order=Order.query.get(order_id),
-                           comments=comments,
-                           derived_orders=derived_orders,
-                           orders_stats=orders_stats,
-                           list=list, reversed=reversed,
-                           time=datetime.now(), int=int)
-
-
-@bp.route('/send_comment', methods=['POST'])
-def send_comment():
-    data = request.form
-    order_id = data['order']
-    user_id = data['user']
-    text = data['text']
-
-    comment = OrderComments()
-    comment.user = user_id
-    comment.order = order_id
-    comment.text = text
-
-    db.session.add(comment)
-    db.session.commit()
+        if len(hasnt_received)>0:
+            thr = threading.Thread(target=send_scheduled_message, args=(task, hasnt_received,))
+            thr.start()
 
     return 'ok'
 
 
-@bp.route('/get_users_<text>', methods=['GET'])
-def get_users(text):
-    users: User = User.query.filter(User.last_name.contains(text)).all()
-    return render_template('main/__executors_list.html',
-                           users=users)
+def send_scheduled_message(task, receivers):
+    from app import create_app
+    app = create_app(config_class=Config)
+    app.app_context().push()
+
+    current_task = ScheduledMessage.query.get(task.id)
+    for user in receivers:
+        cur_user = User.query.get(user.id)
+        current_task.receivers.append(cur_user)
+        db.session.commit()
+
+    t00 = time.time()
+    text = json.loads(task.text)
+    receivers_number = len(receivers)
+
+    # Разбиваем всех пользователей на группы по x чел
+    x = 30
+    groups = []
+    for i in range(math.ceil(receivers_number/x)):
+        groups.append([])
+        for j in range(x):
+            try:
+                groups[i].append(receivers.pop())
+            except IndexError:
+                break
+            except KeyError:
+                break
+
+    i = 0
+    for index, group in enumerate(groups):
+        t0 = time.time()
+
+        if task.message_type == 'text':
+            asyncio.run(bot.send_messages_list(users=group, text=text, parse_mode=''))
+        elif task.message_type == 'photo':
+            asyncio.run(bot.send_photo(chat_id=group, photo=task.content_link, caption=text, parse_mode=''))
+        elif task.message_type == 'video':
+            asyncio.run(bot.send_video(chat_id=group, video=task.content_link, caption=text, parse_mode=''))
+        elif task.message_type == 'poll':
+            asyncio.run(send_quiz(int(json.loads(task.text)), group))
+
+
+        time.sleep(1)
+        # asyncio.run(bot.send_message(chat_id=253393695,
+        #                              text=f'Рассылка {task.id} отправлена {index + 1}/{len(groups)} группе за {time.time() - t0}'))
+        print(f'Рассылка {task.id} отправлена {index + 1}/{len(groups)} группе за {time.time() - t0}')
+    print(f'Задача завершена за {(time.time()-t00)/60} минут')
+    # asyncio.run(bot.send_message(chat_id=253393695,
+    #                              text=f'Рассылка\n {text} отправлена {receivers_number} пользователям за {(time.time()-t00)/60} минут'))
+    # app.app_context().pop()
+    return 'ok'
+
+
+@bp.route('/api', methods=['GET', 'POST'])
+def api():
+    try:
+        message = request.json
+        user = User.query.get(int(message['data']['user']))
+        user_mention = texts.tg_user_mention(user)
+        text = message['data']['message']
+        moderators = list(user.get_group().moderators)
+
+        message = Message()
+        message.type = 'text'
+        message.content = json.dumps({
+            'message': {
+                'text': text,
+                'from': {
+                    'id': user.id
+                }
+            }
+        })
+        message.local_link = ''
+        message.file_id = ''
+        message.date_time = datetime.now()
+        message.direction = 'output'
+        message.user_id = user.id
+        db.session.add(message)
+        db.session.commit()
+
+        buttons = [
+            {
+                'text': 'В эфир',
+                'data': f'alertMessage_{message.id}'
+            },
+            {
+                'text': 'Удалить',
+                'data': f'deleteMessage_{message.id}'
+            }
+        ]
+        map = tg_routes.create_button_map(buttons, 2)
+        reply_markup = tg_routes.get_inline_menu(map)
+
+        asyncio.run(bot.send_messages_list(users=moderators,
+                                           text=f'{user_mention} {text}',
+                                           reply_markup=reply_markup,
+                                           parse_mode='Markdown'))
+
+    except:
+        return 'без вложения'
+    return 'ok'
+
+
+@bp.route('/update_chat', methods=['GET', 'POST'])
+def update_user_chat():
+    try:
+        req = json.loads(request.data)['request']
+        messages_dict = {'data': []}
+        response = ''
+        if req == 'marquee2':
+            current_message = ChatMessages.query.order_by(ChatMessages.id).filter(ChatMessages.shown.is_(False)).first()
+            message_type = tg_routes.get_req_type(json.loads(Message.query.get(current_message.message_id).content))
+            if message_type == 'text':
+                username = User.query.get(Message.query.get(current_message.message_id).user_id).username
+                text = json.loads(Message.query.get(current_message.message_id).content)['message']['text']
+                messages_dict['data'].append({'user': username, 'text': text})
+                current_message.shown = True
+                db.session.commit()
+            if message_type == 'photo':
+                try:
+                    photozone = current_message.description.count('фотозона')
+                except:
+                    photozone = 0
+                if not photozone:
+                    username = User.query.get(Message.query.get(current_message.message_id).user_id).username
+                    text = ''
+                    try:
+                        text = json.loads(Message.query.get(current_message.message_id).content)['message']['caption']
+                    except:
+                        pass
+                    link = ''
+                    try:
+                        link = './static'+Message.query.get(current_message.message_id).local_link.split('static')[1]
+                    except:
+                        pass
+                    messages_dict['data'].append({'user': username, 'text': text, 'link': link})
+                    current_message.shown = True
+                    db.session.commit()
+            response = json.dumps(messages_dict)
+            return response
+        elif req == 'chat' or req == 'marquee':
+            messages_list = []
+            if req == 'chat':
+                messages_list = Message.query.order_by(Message.id.desc()).limit(50)
+            if req == 'marquee':
+                messages_list = Message.query.filter(Message.type.ilike('text')).order_by(Message.id.desc()).limit(20)
+            for message in messages_list:
+                message_type = tg_routes.get_req_type(json.loads(message.content))
+                if message_type == 'text' and message.direction == 'output':
+                    username = User.query.get(message.user_id).username
+                    text = json.loads(message.content)['message']['text']
+                    messages_dict['data'].append({'user': username, 'text': text})
+                if message_type == 'photo' and message.direction == 'output':
+                    username = User.query.get(message.user_id).username
+                    text = ''
+                    try:
+                        text = json.loads(message.content)['message']['caption']
+                    except:
+                        pass
+                    link=''
+                    try:
+                        link = './static'+message.local_link.split('static')[1]
+                    except:
+                        pass
+                    messages_dict['data'].append({'user': username, 'text': text, 'link': link})
+            response = json.dumps(messages_dict)
+            return response
+        elif req == 'photozone':
+            current_message = ChatMessages.query\
+                .order_by(ChatMessages.id)\
+                .filter(ChatMessages.description.contains('фотозона'), ChatMessages.shown.is_(False)).first()
+
+            message_type = tg_routes.get_req_type(json.loads(Message.query.get(current_message.message_id).content))
+            if message_type == 'photo':
+                username = User.query.get(Message.query.get(current_message.message_id).user_id).username
+                try:
+                    link = './static' + Message.query.get(current_message.message_id).local_link.split('static')[1]
+                except:
+                    link = ''
+                messages_dict['data'].append({'user': username, 'text': '', 'link': link})
+                current_message.shown = True
+                db.session.commit()
+            response = json.dumps(messages_dict)
+            return response
+    except:
+        return 'не грузит'
+
+
+@bp.route('/chat', methods=['GET', 'POST'])
+def user_chat():
+    vidget_prefix = Config.VIDGET_PREFIX
+    return render_template('__chat.html', vidget_prefix=vidget_prefix)
+
+
+@bp.route('/marquee', methods=['GET', 'POST'])
+def marquee():
+    vidget_prefix = Config.VIDGET_PREFIX
+    return render_template('marquee.html', vidget_prefix=vidget_prefix)
+
+
+@bp.route('/marquee2', methods=['GET', 'POST'])
+def marquee2():
+    vidget_prefix = Config.VIDGET_PREFIX
+    return render_template('marquee2.html', vidget_prefix=vidget_prefix)
+
+
+@bp.route('/photozone', methods=['GET', 'POST'])
+def photozone():
+    vidget_prefix = Config.VIDGET_PREFIX
+    return render_template('photozone.html', vidget_prefix=vidget_prefix)
+
+
+@bp.route('/serv', methods=['GET', 'POST'])
+def serv():
+    users = User.query.all()
+    workbook = xlsxwriter.Workbook(os.path.join(Config.UPLOAD_FOLDER, 'Конференция_все_пользователи.xlsx'))
+    worksheet = workbook.add_worksheet()
+    worksheet.write(0, 0, '№')
+    worksheet.write(0, 1, 'Имя')
+    worksheet.write(0, 2, 'E-mail')
+    worksheet.write(0, 3, 'Телефон')
+    worksheet.write(0, 4, 'Организация')
+    for index, user in enumerate(users):
+        worksheet.write(index + 1, 0, str(index+1))
+        worksheet.write(index + 1, 1, user.username)
+        worksheet.write(index + 1, 2, user.email)
+        worksheet.write(index + 1, 3, user.phone)
+        worksheet.write(index + 1, 3, user.first_name)
+    workbook.close()
+
+    return send_from_directory(directory=Config.UPLOAD_FOLDER, filename='Конференция_все_пользователи.xlsx', as_attachment=True)
+

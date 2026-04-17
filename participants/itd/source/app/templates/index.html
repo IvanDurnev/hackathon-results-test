@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+    {% include '__main_menu_user.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="main-area container-fluid">
+        <div class="map"></div>
+        <div class="harza"></div>
+        <main class="container-fluid row">
+            <div class="col-lg" style="padding: 0 2% 0 2%">
+                <div id="text_background" class="row">
+                    <p class="col-12 event-info-h green-text bold" style="margin-top: 1%;">ТУРИСТИЧЕСКИЙ ФОРУМ</p>
+                    <p class="col-12 event-info-h white-text bold">«ТУРИЗМ 2.1: МЫСЛИМ ПО-НОВОМУ»</p>
+                    <p class="white-text col-12 mb-0">В этом году рушим стереотипы. В Амурской области есть, где отдохнуть! Даже самые отдаленные территории хранят много тайн. Предлагаем развеять все мифы и по-новому открыть для себя Амурскую область.</p>
+                    <p class="white-text col-12 mb-0">3 февраля внимательно следите за эфиром, вас ждет приятный сюрприз.</p>
+                </div>
+            </div>
+            <div class="col-lg container">
+                <div class="row">
+                    <div class="col">
+                        {% include '__stream.html' %}
+                    </div>
+                </div>
+                {% include '__modal_chat_info.html' %}
+                {% include '__modal_stream_info.html' %}
+                {% include '__modal_speakers_info.html' %}
+            </div>
+        </main>
+        <footer class="container-fluid te">
+            <div class="partners row text-center">
+                <div
+                        class="col-sm-3"
+                        style="
+                                background: url('{{ url_for('static', filename='images/logo_MER.png') }}');
+                                background-repeat: no-repeat;
+                                background-size: contain;
+                                background-position: 50% 100%;
+                                width: 100%;">
+                </div>
+                <div
+                        class="col-sm-3"
+                        style="
+                                background: url('{{ url_for('static', filename='images/logo_CKR.png') }}');
+                                background-repeat: no-repeat;
+                                background-size: contain;
+                                background-position: 50% 100%;
+                                width: 100%;">
+                </div>
+                <div
+                        class="col-sm-3"
+                        style="
+                                background: url('{{ url_for('static', filename='images/logo_API.png') }}');
+                                background-repeat: no-repeat;
+                                background-size: contain;
+                                background-position: 50% 100%;
+                                width: 100%;">
+                </div>
+                <div
+                        class="col-sm-3"
+                        style="
+                                background: url('{{ url_for('static', filename='images/logo_TIC.png') }}');
+                                background-repeat: no-repeat;
+                                background-size: contain;
+                                background-position: 50% 100%;
+                                width: 100%;">
+                </div>
+
+            </div>
+        </footer>
+    </div>
+    <script>
+            $('.send-socket-message').click(sendSocketMessage);
+
+            function sendSocketMessage() {
+                let url = "{{ vidget_prefix }}"+'/api'
+                let params = JSON.stringify({
+                    data: {
+                        user: {{ current_user.id }},
+                        message: $('#socket-message-text').val()
+                    }
+                })
+                var req = new XMLHttpRequest();
+                req.open('POST', url);
+                req.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                req.withCredentials = true;
+                req.send(params);
+                $('#socket-message-text').val('');
+            }
+        </script>
+{% endblock %}

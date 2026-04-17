@@ -8,17 +8,11 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 class Config(object):
     LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'sdlasdkjfh834970987zldskfj843723o42'
-    WTF_CSRF_SECRET_KEY = os.environ.get('SECRET_KEY') or 'wtf-key-secret-secret'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'key-secret-secret'
     TG_TOKEN = os.environ.get('TG_TOKEN') or None
     TG_ADMIN = os.environ.get('TG_ADMIN') or None
 
-    # PostgresqlDB
-    user = os.environ.get('POSTGRES_USER')
-    pw = os.environ.get('POSTGRES_PW')
-    url = os.environ.get('POSTGRES_URL')
-    db = os.environ.get('POSTGRES_DB')
-    SQLALCHEMY_DATABASE_URI = f'postgresql+psycopg2://{user}:{pw}@{url}/{db}'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     USERS_PER_PAGE = 20
@@ -29,24 +23,8 @@ class Config(object):
     STREAM_LINK = os.environ.get('STREAM_LINK')
     VIDGET_PREFIX = os.environ.get('VIDGET_PREFIX')
 
-    # Mail
-    MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = os.environ.get('MAIL_PORT')
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or False
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL') or False
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.yandex.ru'
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 465
+    # MAIL_USE_SSL = 1
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
-
-    # yandex verification
-    YANDEX_VERIFICATION_CONTENT = os.environ.get('YANDEX_VERIFICATION_CONTENT')
-
-    # cors
-    # CORS_ALLOWED_ORIGINS = [os.environ.get('https://1fce2724f3b9.ngrok.io')]
-
-    # celery
-    # CELERY_BROKER_URL = os.environ.get('MESSAGE_QUEUE')
-    # CELERY_RESULT_BACKEND = os.environ.get('REDIS_BACKEND')
-
-    #socketio
-    # SOCKETIO_MESSAGE_QUEUE = os.environ.get('MESSAGE_QUEUE')

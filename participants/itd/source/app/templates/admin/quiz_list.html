@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+    {% include 'admin/__admin_side_nav.html' %}
+{% endblock %}
+
+{% block content %}
+    <div style="padding: 7% 0 0 15%">
+        <h3>Список викторин</h3>
+        <a class="btn btn-success mb-5" href="{{ url_for('admin.create_quiz', quiz_id='new') }}">Создать новую</a>
+        <ol>
+            {% for quiz in quizes %}
+                <li>
+                    <a class="btn btn-success" href="{{ url_for('admin.create_quiz', quiz_id=quiz.id) }}">{{ quiz.name }}</a>
+                    <a href="{{ url_for('admin.del_quiz', quiz_id=quiz.id) }}">Удалить</a>
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock %}

@@ -1,0 +1,100 @@
+<div>
+    <h3>Все пользователи ({{ all_users_count|string }})</h3>
+    <form class="container col-sm-12 margin-top-null form-inline" action="" method="post">
+        {{ search_user_form.hidden_tag() }}
+        {{ search_user_form.name(size=32, class='col-sm-10 form-control', placeholder='ФИО') }}<br>
+        {% for error in search_user_form.name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+        {{ search_user_form.search(class="col-sm-2 btn btn-lg btn-primary form-control") }}
+    </form>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col"></th>
+            <th scope="col">#</th>
+            <th scope="col">id</th>
+            <th scope="col">Логин</th>
+            <th scope="col">TG id</th>
+            <th scope="col">Билетов лото</th>
+{#            <th scope="col">Фамилия</th>#}
+            <th scope="col">Тэги</th>
+            <th scope="col">Рассылки</th>
+            <th scope="col">Почта</th>
+            <th scope="col">Телефон</th>
+{#            <th scope="col">Пригласил</th>#}
+{#            <th scope="col">Роль</th>#}
+            <th scope="col">Статус</th>
+            <th scope="col">Группа</th>
+            <th scope="col">Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr class="small">
+                <th>
+                    {% if user.new_messages()|length >0  %}
+                        <div class="badge badge-primary">{{ user.new_messages()|length }}</div>
+                    {% endif %}
+                </th>
+                <th>{{ loop.index }}</th>
+                <th>{{ user.id }}</th>
+                <td>
+                    <a href="{{ url_for('admin.user_detailed', id=user.id) }}">{{ user.first_name }} {{ user.last_name }}</a>
+                    {% if user.unsubscribed %}
+                        <span class="badge badge-danger">Отписан</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.tg_id }}</td>
+                <td>{{ user.get_lottery_tickets()|count }}</td>
+{#                <td>{{ user.last_name }}</td>#}
+                <td>
+                <ul>
+                    {% for tag in user.tags %}
+                        <li>{{ tag.name }} <a href="{{ url_for('admin.del_user_tag', user_id=user.id, tag_id=tag.id) }}">&times;</a></li>
+                    {% endfor %}
+                </ul>
+                <div class="btn-group" role="group">
+                    <button id="btnGroupDrop1" type="button" class="btn btn-link dropdown-toggle" style="font-size: x-small" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Добавить аттрибут
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                        {% for tag in tags %}
+                            <a class="dropdown-item"
+                               href="{{ url_for('admin.add_user_tag', user_id=user.id, tag_id=tag.id) }}">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </td>
+                <td>{{ user.received }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+{#                <td>{{ user.his_invited_users.count() }}</td>#}
+{#                <td>{{ user.role }}</td>#}
+                <td>{{ user.status }}</td>
+                <td>{{ user.group }}</td>
+                <td>
+                    <a class="btn btn-link" style="font-size: x-small" href="{{ url_for('admin.del_user', user_id=user.id, search_str=search_str) }}"> Удалить</a>
+                    {% if user.role == 'admin' %}
+                        <a class="btn btn-link" style="font-size: xx-small" href="{{ url_for('admin.set_user_role', user_id=user.id) }}">Снять админа</a>
+                    {% else %}
+                        <a class="btn btn-link" style="font-size: xx-small" href="{{ url_for('admin.set_user_role', user_id=user.id) }}">Уст админом</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if prev_url %}
+        <a href="{{ prev_url }}">Предыдущая страница</a>
+    {% endif %}
+    {% if next_url %}
+        <a href="{{ next_url }}">Следующая страница</a>
+    {% endif %}
+    <div class="jumbotron p-1">
+        <h4>Групповое сообщение</h4>
+        {% include 'admin/__send_group_tg_message.html' %}
+    </div>
+</div>

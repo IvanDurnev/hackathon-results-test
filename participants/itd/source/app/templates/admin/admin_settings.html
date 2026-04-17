@@ -1,5 +1,11 @@
-{% extends 'admin/base_admin.html' %}
+{% extends 'base.html' %}
+
+{% block navbar %}
+    {% include 'admin/__admin_side_nav.html' %}
+{% endblock %}
 
 {% block content %}
-    {% include 'admin/__telegram_webhook.html' %}
+    <div style="padding: 7% 0 0 15%">
+        {% include 'admin/__telegram_webhook.html' %}
+    </div>
 {% endblock %}

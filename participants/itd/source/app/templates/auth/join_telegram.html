@@ -7,7 +7,7 @@
             Там вы сможете получить подробную информацию о предстоящей конференции, задать вопросы спикерам и выиграть крутые призы!
             Вы можете пропустить подключение к чат-боту, нажав кнопку ниже «ПРОПУСТИТЬ».
         </p>
-        <span class="white-text">Чтобы подключиться к чат-боту, нужно:</span>
+        <span class="white-text">Чтобы подключиться к чат-боту Харза, нужно:</span>
         <ol class="white-text">
             <li>Установить телеграм на ваше устройство. Вот ссылки:
                 <ul class="list-unstyled mb-1">
@@ -23,8 +23,13 @@
         <ol class="white-text">
             <li>Нажать ниже кнопку <b>"Подключиться к чат-боту"</b></li>
             <li>Нажать в боте кнопку <b>"Start"</b></li>
+            <li>Бот попросит вас прислать ему вашу электронную почту, которую вы ввели при регистрации</li>
+            <li>Отправьте боту вашу электронную почту</li>
         </ol>
-        <a class="form-control btn btn-info login-btn mb-2" href="{{ "https://t.me/"+bot_name+"?start=userid_"+current_user.id|string }}" target="_blank">
+{#        <div class="copy-text text-center mb-3">#}
+{#            <b class="for-copy white">{{ current_user.code }}</b>#}
+{#        </div>#}
+        <a class="form-control btn btn-info login-btn mb-2" href="{{ "https://teleg.run/"+ bot_name }}" target="_blank">
             ПОДКЛЮЧИТЬСЯ К ЧАТ-БОТУ
         </a>
         <a class="form-control btn btn-info login-btn" href="{{ url_for('main.index') }}">

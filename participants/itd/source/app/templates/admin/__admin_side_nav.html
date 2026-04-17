@@ -1,0 +1,271 @@
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">Админка</a>
+    <button
+            class="navbar-toggler"
+            type="button"
+            data-toggle="collapse"
+            data-target="#navbarCollapse"
+            aria-controls="navbarCollapse"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+    >
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto sidenav" id="navAccordion">
+            <li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('admin.users_info', id='all', search_str='*') }}"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Все пользователи
+                </a>
+            </li>
+            <li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('admin.admin_settings') }}"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Настройки
+                </a>
+            </li>
+            <li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('admin.message_schedule') }}"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Запланированные сообщения
+                </a>
+            </li>
+            <li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('admin.moderation') }}"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Модерация групп
+                </a>
+            </li>
+            <li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('admin.uploads', filename='*') }}"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Файлы
+                </a>
+            </li><li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('main.marquee') }}"
+                        target="_blank"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Бегущая строка
+                </a>
+            </li>
+            </li><li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('main.marquee2') }}"
+                        target="_blank"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Алерты
+                </a>
+            </li>
+            </li><li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('main.user_chat') }}"
+                        target="_blank"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Чат
+                </a>
+            </li>
+            </li><li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('main.photozone') }}"
+                        target="_blank"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Фотозона
+                </a>
+            </li>
+            </li><li class="nav-item">
+                <a
+                        class="nav-link"
+                        id="v-pills-home-tab"
+{#                        data-toggle="pill"#}
+                        href="{{ url_for('main.cron') }}"
+                        target="_blank"
+                        role="tab"
+                        aria-controls="v-pills-home"
+                        aria-selected="true">
+                    Cron (не нажимай)
+                </a>
+            </li>
+{#            <li class="nav-item">#}
+{#                <a#}
+{#                        class="nav-link nav-link-collapse"#}
+{#                        href="#"#}
+{#                        id="hasSubItems"#}
+{#                        data-toggle="collapse"#}
+{#                        data-target="#collapseSubItems2"#}
+{#                        aria-controls="collapseSubItems2"#}
+{#                        aria-expanded="false"#}
+{#                >Item 2</a>#}
+{#                <ul class="nav-second-level collapse" id="collapseSubItems2" data-parent="#navAccordion">#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="#">#}
+{#                            <span class="nav-link-text">Item 2.1</span>#}
+{#                        </a>#}
+{#                    </li>#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" href="#">#}
+{#                            <span class="nav-link-text">Item 2.2</span>#}
+{#                        </a>#}
+{#                    </li>#}
+{#                </ul>#}
+{#            </li>#}
+        </ul>
+    </div>
+</nav>
+
+<main class="content-wrapper">
+  <div class="container-fluid">
+      <div class="tab-content" id="v-pills-tabContent">
+          <div class="tab-pane fade show active" id="v-pills-users" role="tabpanel" aria-labelledby="v-pills-home-tab">
+{#              {% include '__all_users_table.html' %}#}
+          </div>
+          <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+{#              {% include '__admin_settings.html' %}#}
+          </div>
+          <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab"></div>
+          <div class="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab">...</div>
+
+      </div>
+  </div>
+</main>
+
+<style>
+    html {
+        position: relative;
+        min-height: 100%;
+    }
+
+    body {
+        padding: 0;
+        margin-bottom: 4.5rem;
+        background: white;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 3.5rem;
+      line-height: 3.5rem;
+      background-color: #ccc;
+    }
+
+    .navbar {
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-link:hover {
+      transition: all 0.4s;
+    }
+
+    .nav-link-collapse:after {
+      float: right;
+      content: '\f067';
+        font-family: 'FontAwesome';
+    }
+
+    .nav-link-show:after {
+      float: right;
+      content: '\f068';
+      font-family: 'FontAwesome';
+    }
+
+    .nav-item ul.nav-second-level {
+      padding-left: 0;
+    }
+
+    .nav-item ul.nav-second-level > .nav-item {
+      padding-left: 20px;
+    }
+
+    @media (min-width: 992px) {
+      .sidenav {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 230px;
+        height: calc(100vh - 3.5rem);
+        margin-top: 3.5rem;
+        background: #343a40;
+        box-sizing: border-box;
+        border-top: 1px solid rgba(0, 0, 0, 0.3);
+      }
+
+      .navbar-expand-lg .sidenav {
+        flex-direction: column;
+      }
+
+      .content-wrapper {
+        margin-left: 230px;
+      }
+
+      .footer {
+        width: calc(100% - 230px);
+        margin-left: 230px;
+      }
+    }
+</style>
+<script>
+    $('.nav-link-collapse').on('click', function() {
+        $('.nav-link-collapse').not(this).removeClass('nav-link-show');
+        $(this).toggleClass('nav-link-show');
+    });
+    $('.nav-item').on('click', function () {
+        $('.nav-link').removeClass('active');
+        $('.nav-item').removeClass('active');
+        $(this).toggleClass('active');
+    } );
+</script>

@@ -15,7 +15,7 @@
                     {{ create_question_form.question_type(class='form-control') }}
 
                     {{ create_question_form.question_text.label }}
-                    {{ create_question_form.question_text(rows=5, class='form-control') }}
+                    {{ create_question_form.question_text(class='form-control') }}
 
                     {{ create_question_form.variants.label }}
                     {{ create_question_form.variants(rows=5, class='form-control', placeholder='После каждого варианта нажмите Enter. После правильного варианта напишите (верный)') }}
@@ -27,13 +27,10 @@
                     {{ create_question_form.answer_type(class='form-control') }}
 
                     {{ create_question_form.answer_text.label }}
-                    {{ create_question_form.answer_text(rows=5, class='form-control') }}
+                    {{ create_question_form.answer_text(class='form-control') }}
 
                     {{ create_question_form.answer_content.label }}
                     {{ create_question_form.answer_content(class='form-control') }}
-
-                    {{ create_question_form.answer_explanation.label }}
-                    {{ create_question_form.answer_explanation(rows=5, class='form-control') }}
 
                     {{ create_question_form.save_question(class="btn btn-lg btn-primary form-control") }}
                 </form>

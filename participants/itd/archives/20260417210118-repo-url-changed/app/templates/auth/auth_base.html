@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="yandex-verification" content="{{ yandex_verification_content }}" />
+<meta name="yandex-verification" content="ba9a9f5478b4582a" />
+<link href="{{ url_for("static", filename="bootstrap-4.5.0-dist/css/bootstrap.min.css") }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for("static", filename="css/signin.css") }}" rel="stylesheet">
+<link href="{{ url_for("static", filename="css/style.css") }}" rel="stylesheet" type="text/css">
+<link rel="icon" href="{{ url_for("static", filename="images/favicon.png") }}">
+
+<style>
+    form {
+        border-radius: 10px;
+        background-color: #b9bcbf;
+    }
+
+    .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+            font-size: 3.5rem;
+        }
+    }
+</style>
+
+{% block title %}
+    {% if title %}
+        <title>{{ title }}</title>
+    {% else %}
+        <title>Новогоднее лото</title>
+    {% endif %}
+{% endblock %}
+
+<body>
+{% block content %}
+{% endblock %}
+</body>

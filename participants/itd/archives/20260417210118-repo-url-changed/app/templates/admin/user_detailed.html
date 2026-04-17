@@ -1,0 +1,25 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block content %}
+    <div>
+        <h3>{{ user.first_name|string + ' ' + user.last_name|string }}</h3>
+        {% if user.inviter %}
+            <em>{{ 'Приглашен пользователем '+user.inviter|string }}</em>
+        {% endif %}
+        {% include 'admin/__user_messages.html' %}
+        <h4 class="mt-3">Приглашенные пользователи:</h4>
+        <ol>
+        {% for invited in user.his_invited_users %}
+            <li class="text-white">
+                <a class="text-white" href="{{ url_for('admin.user_detailed', id=invited.id) }}">{{ invited.id|string + ' ' + invited.first_name|string + ' ' + invited.last_name|string}}</a>
+            </li>
+        {% endfor %}
+        </ol>
+        <h4>Полученные рассылки</h4>
+        <ol>
+        {% for sm in received_scheduled_messages %}
+            <li>{{ sm.id|string + ' от ' + sm.date_time|string }}</li>
+        {% endfor %}
+        </ol>
+    </div>
+{% endblock %}

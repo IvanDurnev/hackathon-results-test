@@ -1,9 +1,13 @@
 from app import db, login, Config
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from random import choice
+from string import ascii_letters
 from datetime import datetime
 import jwt
 from time import time
+# import app
+
 
 
 @login.user_loader
@@ -11,15 +15,20 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-user_tag = db.Table('user_tag',
-                    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-                    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'))
-                    )
+user_award = db.Table('user_award',
+                              db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                              db.Column('award_id', db.Integer, db.ForeignKey('award.id'))
+                              )
 
-order_executor = db.Table('order_executor',
-                      db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-                      db.Column('order_id', db.Integer, db.ForeignKey('order.id'))
-                      )
+
+group_moderators = db.Table('group_moderators',
+                              db.Column('group_id', db.Integer, db.ForeignKey('group.id')),
+                              db.Column('user_tg_id', db.Integer, db.ForeignKey('user.tg_id'))
+                              )
+
+invited_users = db.Table('invited_users',
+                         db.Column('inviter', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                         db.Column('invited', db.Integer, db.ForeignKey('user.id'), primary_key=True))
 
 
 class User(UserMixin, db.Model):
@@ -28,39 +37,48 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True)
     email = db.Column(db.String(100), index=True)
     phone = db.Column(db.String(18), index=True, unique=True)
-    private_number = db.Column(db.String(20), default='')
     is_bot = db.Column(db.Boolean, index=True)
     first_name = db.Column(db.String(64), index=True)
-    position = db.Column(db.String(64))
     last_name = db.Column(db.String(64), index=True)
-    additional_code = db.Column(db.String(64), index=True)
-    language_code = db.Column(db.String(5), index=True, default='ru')
+    language_code = db.Column(db.String(5), index=True)
     password_hash = db.Column(db.String(128))
-    status = db.Column(db.String(30), index=True, default='')
+    status = db.Column(db.String(12), index=True)
     role = db.Column(db.String(12), index=True)
-    group = db.Column(db.Integer, db.ForeignKey('group.id'), index=True, default=1)
-    registered = db.Column(db.DateTime, index=True, nullable=True, default=datetime.now())
-    priority = db.Column(db.Integer)
-    boss = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    tags = db.relationship('Tag',
-                           secondary=user_tag,
-                           lazy='subquery',
-                           backref=db.backref('tags', lazy=True))
-
-    def set_unsubscribed(self):
-        self.unsubscribed = True
-        db.session.commit()
-
-    def set_subscribed(self):
-        self.unsubscribed = False
-        db.session.commit()
+    group = db.Column(db.Integer, db.ForeignKey('group.id'), index=True)
+    his_invited_users = db.relationship('User',
+                                        secondary=invited_users,
+                                        primaryjoin=(invited_users.c.inviter == id),
+                                        secondaryjoin=(invited_users.c.invited == id),
+                                        backref=db.backref('inviter', lazy=True),
+                                        lazy='dynamic')
+    registered = db.Column(db.DateTime, index=True, nullable=True, default=datetime.now)
+    messages = db.relationship('Message', backref='user', lazy=True)
+    awards = db.relationship('Award',
+                             secondary=user_award,
+                             lazy='subquery',
+                             backref=db.backref('awards', lazy=True))
+    moderation_groups = db.relationship('Group',
+                                 secondary=group_moderators,
+                                 lazy='subquery',
+                                 backref=db.backref('moderation_groups', lazy=True))
+    user_moderators = db.relationship('User',
+                                 secondary=group_moderators,
+                                 lazy='subquery',
+                                 backref=db.backref('my_moderators', lazy=True))
+    last_visit = db.Column(db.DateTime)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def new_messages(self):
+        return Message.query.filter_by(user_id=self.id, seen=False).all()
+
+    def all_messages(self):
+        return Message.query.filter_by(user_id=self.id).all()
+
 
     def get_group(self):
         if self.group:
@@ -75,15 +93,6 @@ class User(UserMixin, db.Model):
             Config.SECRET_KEY,
             algorithm='HS256').decode('utf-8')
 
-    def get_orders_iam_creator(self):
-        return Order.query.filter(Order.creator == self.id).all()
-
-    def get_orders_iam_executor(self):
-        return Order.query.filter(Order.executors.contains(self)).all()
-
-    def get_notes(self):
-        return Note.query.filter(Note.creator == self.id).all()
-
     @staticmethod
     def verify_reset_password_token(token):
         try:
@@ -92,119 +101,99 @@ class User(UserMixin, db.Model):
             return
         return User.query.get(id)
 
-    def set_item(self, item, value):
-        if item in self.__dict__:
-            setattr(self, item, value)
-            db.session.commit()
-        else:
-            raise Exception('WrongItem')
-
 
     def __repr__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.username}'
 
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(30), index=True)
+    time_zone = db.Column(db.Integer, default=9)
+    moderators = db.relationship('User',
+                                 secondary=group_moderators,
+                                 lazy='subquery',
+                                 backref=db.backref('moderators', lazy=True))
     users = db.relationship('User', backref='users', lazy=True)
 
-    def __repr__(self):
-        return self.name
 
-
-class Tag(db.Model):
+class Award(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(30), index=True)
     description = db.Column(db.String(128), index=True)
-    users = db.relationship('User',
-                              secondary=user_tag,
+    prizers = db.relationship('User',
+                              secondary=user_award,
                               lazy='subquery',
-                              backref=db.backref('tag_users', lazy=True))
+                              backref=db.backref('prizers', lazy=True))
 
 
-class MainMenuItems(db.Model):
+class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.String(30))
-    callback = db.Column(db.String(30))
-    enabled = db.Column(db.Boolean, default=True)
-    order = db.Column(db.Integer, unique=True)
+    content = db.Column(db.JSON, nullable=False)
+    local_link = db.Column(db.String(4096), default='')
+    file_id = db.Column(db.String(256), default='')
+    type = db.Column(db.String(20), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    direction = db.Column(db.String(20), nullable=False)
+    date_time = db.Column(db.DateTime, default=datetime.now())
+    seen = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f'{self.content}'
 
 
-class OrderTypes(db.Model):
+received_messages = db.Table('received_messages',
+                             db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                             db.Column('scheduled_message_id', db.Integer, db.ForeignKey('scheduled_message.id'))
+                             )
+
+
+class ScheduledMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(30))
-    description = db.Column(db.String(100))
-    color = db.Column(db.String(6))
-
-
-class OrderComments(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
-    order = db.Column(db.Integer, db.ForeignKey('order.id'))
-    creation_date = db.Column(db.DateTime, default=datetime.now())
-    text = db.Column(db.String(2048))
-
-    def get_user(self):
-        return User.query.get(self.user)
-
-
-class OrderStatus(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(30))
-    description = db.Column(db.String(100))
-
-
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    base_order = db.Column(db.Integer, db.ForeignKey('order.id'))
-    creation_date = db.Column(db.DateTime, default=datetime.now())
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
-    title = db.Column(db.String(512))
-    description = db.Column(db.String(4096))
-    description_sound = db.Column(db.String(1024))
-    priority = db.Column(db.Integer, default=1)
-    type = db.Column(db.Integer, db.ForeignKey('order_types.id'))
-    interval = db.Column(db.Integer, default=0)
-    deadline = db.Column(db.DateTime)
-    done = db.Column(db.Boolean, default=False)
-    reactions = db.Column(db.JSON, default={})
-    status = db.Column(db.Integer, db.ForeignKey('order_status.id'), default=1)
-    executors = db.relationship('User',
-                                secondary=order_executor,
+    task_type = db.Column(db.String(20), nullable=False)
+    message_type = db.Column(db.String(20), nullable=False)
+    date_time = db.Column(db.DateTime)
+    interval = db.Column(db.Integer)
+    text = db.Column(db.String(4096), nullable=False)
+    content_link = db.Column(db.String(256), nullable=False)
+    receivers = db.relationship('User',
+                                secondary=received_messages,
                                 lazy='subquery',
-                                backref=db.backref('executors', lazy=True))
+                                backref=db.backref('received', lazy='subquery'))
 
-    def get_comments(self):
-        return OrderComments.query.filter(OrderComments.order == self.id).order_by(OrderComments.creation_date).all()
 
-    def get_creator(self):
-        return User.query.get(self.creator)
+quiz_questions = db.Table('quiz_questions',
+                             db.Column('quiz_id', db.Integer, db.ForeignKey('quiz.id')),
+                             db.Column('question_id', db.Integer, db.ForeignKey('question.id'))
+                             )
 
-    def get_status(self):
-        return OrderStatus.query.get(self.status)
 
-class CustomInputs(db.Model):
-    """
-    Structure
-    [
-        {
-            "name": string,
-            "type": enum one of (checkbox|file|text)
-        }
-    ]
-
-    Example
-        [{"name": "I am pony", "type": "checkbox"}]
-    """
-
+class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    preset_name = db.Column(db.String(64), nullable=False)
-    preset = db.Column(db.JSON, default=[])
+    name = db.Column(db.String(20), nullable=False)
+    description = db.Column(db.String(4096))
+    questions = db.relationship('Question',
+                                secondary=quiz_questions,
+                                lazy='subquery',
+                                backref=db.backref('questions', lazy=True))
+    final_text = db.Column(db.String(4096))
 
-class Note(db.Model):
+
+class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.String(4096))
-    sound_file = db.Column(db.String(1024))
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
-    creation_date = db.Column(db.DateTime, default=datetime.now())
+    question_type = db.Column(db.String(20), nullable=False)
+    question_text = db.Column(db.String(1024), nullable=False)
+    question_variants = db.Column(db.String(1024), nullable=False)
+    question_content = db.Column(db.String(1024))
+    question_content_link = db.Column(db.String(1024))
+    answer_type = db.Column(db.String(1024), nullable=False)
+    answer_text = db.Column(db.String(1024), nullable=False)
+    answer_content = db.Column(db.String(1024))
+    answer_content_link = db.Column(db.String(1024))
+
+
+class ChatMessages(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
+    shown = db.Column(db.Boolean)
+    description = db.Column(db.String(1024))

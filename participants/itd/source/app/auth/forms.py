@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from wtforms.fields.html5 import TelField, EmailField
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Email
 from app.models import User
@@ -7,21 +7,20 @@ from app.models import User
 
 class LoginForm(FlaskForm):
     login = StringField('Имя пользователя', validators=[DataRequired()])
-    # password = PasswordField('Пароль', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('ВОЙТИ')
 
 
 class RegistrationForm(FlaskForm):
-    # username = StringField('Логин', validators=[DataRequired()])
-    first_name = StringField('Имя', validators=[DataRequired()])
-    last_name = StringField('Фамилия')
+    username = StringField('Ваши ФИО', validators=[DataRequired()])
+    first_name = StringField('Ваша организация', validators=[DataRequired()])
+    last_name = StringField('Ваша должность')
     email = EmailField('E-mail', validators=[DataRequired()])
     phone = TelField('Телефон', validators=[DataRequired()])
-    group = SelectField('Подразделение')
+    # region = SelectField('Ваш филиал')
     password = PasswordField('Пароль', validators=[DataRequired()])
     password2 = PasswordField('Повторите пароль', validators=[DataRequired(), EqualTo('password', message='Пароли не совпадают')])
-    tg_id = StringField('TG id')
     submit = SubmitField('ЗАРЕГИСТРИРОВАТЬСЯ')
 
     def validate_username(self, username):

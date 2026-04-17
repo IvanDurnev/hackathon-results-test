@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalCenterTitle">Добавить группу</h5>
+                <h5 class="modal-title" id="exampleModalCenterTitle">Добавить регион</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -10,9 +10,8 @@
             <div class="modal-body">
                 <form class="container col-sm-6 form-signin" action="" method="post" style="padding: 2%" enctype="multipart/form-data">
                     {{ create_group_form.hidden_tag() }}
-
-                    {{ create_group_form.name.label() }}
-                    {{ create_group_form.name() }}
+                    {{ create_group_form.name.label }}
+                    {{ create_group_form.name }}
                     {{ create_group_form.submit(class="btn btn-lg btn-primary") }}
                 </form>
             </div>

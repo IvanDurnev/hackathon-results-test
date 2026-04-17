@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+{% block content %}
+    <form class="container col-sm-4 form-signin" action="" method="post" style="padding: 2%">
+        <h3 class="mb-3 font-weight-normal">Войти</h3>
+        {{ form.hidden_tag() }}
+
+        {{ form.login(size=32, class='col-sm-12 form-control ', type="text", placeholder='Ваш табельный номер') }}<br>
+        {% for error in form.login.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+{#        {{ form.password(size=32, class='col-sm-12 form-control', type="password", placeholder='Пароль') }}<br>#}
+{#        {% for error in form.password.errors %}#}
+{#            <span style="color: red;">[{{ error }}]</span>#}
+{#        {% endfor %}#}
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="list-unstyled text-center">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <p>
+            {{ form.remember_me() }} {{ form.remember_me.label }} <br>
+        </p>
+        <div class="justify-content-center">
+        {{ form.submit(class="form-control btn btn-info mb-3") }}
+{#            <a class="form-control btn btn-info" href="{{ url_for('auth.register') }}">#}
+{#                ЗАРЕГИСТРИРОВАТЬСЯ#}
+{#            </a>#}
+{#            <p class="mt-3">#}
+{#                Забыли пароль?#}
+{#                <a href="{{ url_for('auth.reset_password_request') }}">Нажмите, чтобы восстановить</a>#}
+{#            </p>#}
+        </div>
+    </form>
+{% endblock %}
+

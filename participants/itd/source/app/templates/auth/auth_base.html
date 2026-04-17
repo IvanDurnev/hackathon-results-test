@@ -2,17 +2,34 @@
 <html lang="ru">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="yandex-verification" content="{{ yandex_verification_content }}" />
-<meta name="yandex-verification" content="ba9a9f5478b4582a" />
 <link href="{{ url_for("static", filename="bootstrap-4.5.0-dist/css/bootstrap.min.css") }}" rel="stylesheet" type="text/css">
 <link href="{{ url_for("static", filename="css/signin.css") }}" rel="stylesheet">
 <link href="{{ url_for("static", filename="css/style.css") }}" rel="stylesheet" type="text/css">
 <link rel="icon" href="{{ url_for("static", filename="images/favicon.png") }}">
 
 <style>
+    @font-face {
+        font-family: 'RostelecomBasis';
+        src: url("{{ url_for('static', filename='fonts/rtm/RostelecomBasis-Regular.otf') }}");
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'RostelecomBasis';
+        src: url("{{ url_for('static', filename='fonts/rtm/RostelecomBasis-Bold.otf') }}");
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    body{
+        background-image: url('{{ url_for('static', filename='images/login_background.png') }}');
+        background-size: cover;
+        font-family: "RostelecomBasis";
+    }
+
     form {
         border-radius: 10px;
-        background-color: #b9bcbf;
+        background-color: rgba(65, 166, 235, 0.502);
     }
 
     .bd-placeholder-img {
@@ -35,11 +52,13 @@
     {% if title %}
         <title>{{ title }}</title>
     {% else %}
-        <title>Новогоднее лото</title>
+        <title>Онлайн-маркетинг в туризме</title>
     {% endif %}
 {% endblock %}
 
 <body>
 {% block content %}
 {% endblock %}
+{#<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>#}
+{#<script src="{{ url_for('static', filename='js/script.js') }}"></script>#}
 </body>
