@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <p id="save_notice" hidden style="position: fixed; right: 5px; top:5px">Изменения сохранены</p>
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col">
+                <p class="m-0 p-0">Регламент: {{ regulation_version.parent_regulation().short_name }}
+                    <a class="btn btn-link p-0 m-0" data-toggle="collapse" href="#collapseRenameRegulation" role="button" aria-expanded="false" aria-controls="collapseRenameRegulation">
+                        Переименовать
+                    </a>
+                </p>
+                <div class="collapse" id="collapseRenameRegulation">
+                    <div class="card card-body">
+                        <p class="">Переименовать</p>
+                        <form class="form-inline p-0" action="" method="post">
+                            {{ rename_regulation_form.hidden_tag() }}
+
+                            {{ rename_regulation_form.name() }}
+                            {{ rename_regulation_form.rename() }}
+                        </form>
+                    </div>
+                </div>
+                <p>Версия {{ regulation_version.version_number }}</p>
+            </div>
+            <div class="col">
+                <p class="m-0">Дата создания {{ regulation_version.created.strftime('%d.%m.%y %H:%M') }}</p>
+                <p>Статус <em>{{ regulation_version.status }}</em></p>
+            </div>
+            <div class="col">
+                <a class="btn btn-outline-info">Сохранить в ПДФ</a>
+                <a class="btn btn-outline-primary">Выгрузить в Реестр <img class="p-0 d-block" style="height: 10px" src="{{ url_for('static', filename='img/gos.svg') }}" /></a>
+            </div>
+        </div>
+            <form class="form-inline text-right m-3" action="" method="post">
+                {{ add_document_link.hidden_tag() }}
+
+                {{ add_document_link.link.label(class='mr-3') }}
+                {{ add_document_link.link() }}
+                {{ add_document_link.add() }}
+            </form>
+        <div class="row">
+            <form class="col" method="POST" action='/save_regulation_{{ regulation_version.id }}' onchange="save_changes()" id='editor'>
+                <div class="form-group" id='headers'>
+                    <div id='hdrs' class="p-3" style="background: lightgray">
+                        <b>Шапка документа</b>
+                        <div class="">
+                            <label for='header_application'>Отметка о приложении</label>
+                            <textarea class='form-control' name='header_application' id='header_application'>{{ data['header_application'] }}</textarea>
+                        </div>
+                        <div>
+                            <label for='header_name'>Наименование приложения</label>
+                            <textarea class='form-control' name='header_name'  id='header_name'>{{ data['header_name'] }}</textarea>
+                            <p class="mb-0 mt-3">Ссылки на используемые документы:</p>
+                            <ol>
+                                {% for doc in regulation_base_documents %}
+                                    <li><a href="{{ doc.link }}" target="_blank">{{ doc.link }}</a></li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-3" form="editor" type="submit">Сохранить</button>
+                    <a class="btn btn-secondary mt-3" href="{{ url_for('main.index') }}">Закрыть</a>
+                </div>
+                <div class="p-3 main-text" style="background: lightblue">
+                    <p><b>Основной текст</b></p>
+                    <div class="row p-3">
+                        <a href="{{ url_for('main.editor_add_chapter', regulation_version_id=regulation_version.id) }}" class="btn btn-success col-2">Добавить раздел</a>
+                        <button type="button" onclick="hide_all()" class="btn btn-primary ml-3">Свернуть всё</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col">
+                <button class="btn btn-primary" form="editor" type="submit">Сохранить</button>
+                <a class="btn btn-secondary" href="{{ url_for('main.index') }}">Закрыть</a>
+            </div>
+            <form class="col text-right ml-auto p-0" onchange="this.submit()" action="/add_regulation_application/{{regulation_version.id}}" method="POST" enctype="multipart/form-data">
+                <label for="appliction_uploader">Подгрузить приложение</label>
+                <input type="file" name='uploaded_application' id="appliction_uploader">
+                {% for i in applications %}
+                    <a href="{{url_for('static', filename='applications/'+i.filename_orig)}}">{{i.filename_orig}}</a><br>
+                {%endfor%}
+            </form>
+        </div>
+    </div>
+
+    <div class="container jumbotron pl-4 pt-2 mt-3">
+        <p>Отправить на согласование</p>
+        <div class="row">
+            <textarea class="col" placeholder="Вставьте электронные почты через пробел"></textarea>
+        </div>
+        <a class="btn btn-success text-light">Отправить на согласование</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script>
+        function save_changes() {
+            xhr = new XMLHttpRequest()
+            xhr.open("POST", $('#editor')[0].action, true)
+            xhr.onload = function () {
+                $('#save_notice').removeAttr('hidden')
+                setTimeout(function () {$('#save_notice')[0].setAttribute('hidden', 'true')}, 500)
+            }
+            xhr.send(new FormData(document.getElementById('editor')))
+        }
+
+        {# загрузка текста #}
+        let data = {{ data|safe }};
+        let pattern = /chapter_\d/;
+        let chapters = [];
+        let style_tooltip = $(``)
+        for (let item in data) if (item.match(pattern)) chapters.push({'text': data[item]})
+        let index = 0;
+        for (let chapter in chapters) {
+            index++
+            let main_text_wrapper = $('.main-text')
+            let chapter_wrapper_node = $(`<div class="chapter_${index} accordion" id="accordion_chapter_${index}"></div>`)
+            let accordeon_card = $(`<div class="card"></div>`)
+            chapter_wrapper_node.append(accordeon_card)
+            let card_header = $(`<div class="card-header" id="heading_chapter_${index}"></div>`)
+            accordeon_card.append(card_header)
+            let accordeon_name = $(`<h5 class="mb-0"><button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse_chapter_${index}" aria-expanded="true" aria-controls="collapse_chapter_${index}" style='word-wrap: break-words; text-align: justify'>Раздел ${index} ${chapters[chapter]['text']}</button></h5>`)
+            card_header.append(accordeon_name)
+
+            let collapse_node = $(`<div id="collapse_chapter_${index}" class="collapse show" aria-labelledby="heading_chapter_${index}" data-parent="#accordion_chapter_${index}"></div>`)
+            accordeon_card.append(collapse_node)
+
+            let card_body_node = $(`<div class="card-body"></div>`)
+            collapse_node.append(card_body_node)
+            let chapter_header_node = $(`<p class="mb-0 mt-2">Раздел ${index}</p>`)
+            let chapter_node = $(`<textarea class="form-control text-left" id=chapter_name_${index} name="chapter_${index}" placeholder="Заголовок раздела">${chapters[chapter]['text']}</textarea>`)
+            let add_paragraph_button = $(`<a class="btn btn-secondary ml-3" href="{{ url_for('main.add_paragraph', regulation_version_id=regulation_version.id, chapter_number='') }}${index}">Добавить пункт</a>`)
+
+            let paragraph_pattern = new RegExp('paragraph_'+(Number(chapter)+1).toString()+'_\\d')
+            let paragraphs = [];
+            for (let item in data) {
+                if (item.match(paragraph_pattern)) paragraphs.push({'text': data[item]})
+            }
+
+            card_body_node.append(chapter_header_node, chapter_node, add_paragraph_button)
+            main_text_wrapper.append(chapter_wrapper_node)
+
+
+            for (let paragraph in paragraphs) {
+                let paragraph_header_node = $(`<p class="ml-3 mb-0 mt-3" id=paragraph_name_${Number(paragraph)+1}_${Number(paragraph)+1}>Пункт ${Number(chapter)+1}.${Number(paragraph)+1} <button type='button' class='btn btn-danger' onclick='remove_sect(${Number(chapter)+1},${Number(paragraph)+1})'>Удалить</button></p>`)
+                let paragraph_node = $(`<div class='input-group'>
+                <textarea rows="15" class="input-group form-control ml-3 mr-3" onkeydown='return keeplist(event, this)' name=paragraph_${Number(chapter)+1}_${Number(paragraph)+1}>${paragraphs[paragraph]['text']}</textarea>
+                <div class='input-group'>
+                    <button class='btn input-group-text' onclick='event.preventDefault(); mklist(document.getElementsByName("paragraph_${Number(chapter)+1}_${Number(paragraph)+1}")[0], "unordered")' type='button'><img style='height: 20px' src='https://simpleicons.org/icons/serverless.svg'></button><br>
+                    <button class='btn input-group-text' onclick='event.preventDefault(); mklist(document.getElementsByName("paragraph_${Number(chapter)+1}_${Number(paragraph)+1}")[0], "ordered", "${Number(paragraph)+1}.${Number(chapter)+1}")' type='button'><img style='height: 20px' src='https://simpleicons.org/icons/squareenix.svg'></button>
+                </div>
+            </div>`)
+                card_body_node.append(paragraph_header_node, paragraph_node)
+            }
+        }
+
+        {#  сохранение ссылок  #}
+        let link_area = $('#header_base_doc')
+        link_area.keypress(addBaseDocumentLink)
+
+        function mklist(elem, type, par = 0) {
+            data = elem.value.split("\n")
+            if (type == 'unordered') {
+                if (data[data.length-1].startsWith('-')){
+                    elem.value += "\n-"+data[data.length-1].split(' ')[0]+" "
+                } else {
+                    elem.value += "\n- "
+                }
+            } else if (type == 'ordered') {
+                re = RegExp("[0-9]+\.[0-9]+\.[0-9]+ .*")
+                if (re.test(data[data.length-1])){
+                    n = data[data.length-1].split(' ')[0].split('.')
+                    elem.value += `\n${n[0]}.${n[1]}.${parseInt(n[2])+1} `
+                } else {
+                    elem.value += `\n${par}.1 `
+                }
+            }
+        }
+
+        function remove_sect(section, paragraph) { 
+            xhr = new XMLHttpRequest();
+            if (paragraph == -1){
+                xhr.open('DELETE', `/reg/{{regulation_version.id}}/remove/${section}`)
+            } else {
+                xhr.open('DELETE', `/reg/{{regulation_version.id}}/remove/${section}/${paragraph}`)
+            }
+            xhr.onload = function () {window.location = window.location}
+            xhr.send()
+        }
+
+        function keeplist(evt, elem) {
+            if (evt.key === "Enter"){
+            re = RegExp("[0-9]+\.[0-9]+\.[0-9]+ .*")
+            data = elem.value.split("\n")
+            if (data[data.length-1].startsWith('-')) {
+                elem.value += '\n' + data[data.length-1].split(' ')[0] + " "
+            } else if (re.test(data[data.length-1])) {
+                n = data[data.length-1].split('.')
+                elem.value += `\n${n[0]}.${n[1]}.${parseInt(n[2])+1} `
+            } else {
+               return `\n`
+            }
+            return false
+        } 
+        }
+
+        function addBaseDocumentLink(e) {
+            if (e.originalEvent.key==='Enter') {
+                {#let link_count = document.querySelectorAll('.base-doc-link').length#}
+                {#let base_document_link = $(`<a rows="1" name="link_${link_count+1}" id="link_${link_count+1}" class="d-block base-doc-link btn btn-link form-control text-left" href="${link_area.val()}" target="_blank">${link_count+1}. ${link_area.val()}</a>`)#}
+                {#let headers = $('#hdrs')#}
+                {#headers.append(base_document_link)#}
+                {#link_area.val('')#}
+                {#let url = "{{ url_for('main.index', _external=True) }}"#}
+                {##}
+                {#data = {#}
+                {#    request: 'chat'#}
+                {#params = {#}
+                {#    method: 'POST',#}
+                {#    body: JSON.stringify(data)#}
+                };
+            };
+
+        function hide_all() {
+            let showing_nodes = document.querySelectorAll('.show')
+            for (let n of showing_nodes) {
+                n.classList.toggle('show')
+            }
+        }
+    </script>
+{% endblock %}

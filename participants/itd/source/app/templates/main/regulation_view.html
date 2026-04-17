@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <p class="m-0">Регламент: {{ regulation_version.parent_regulation().short_name }}
+                </p>
+                <div class="collapse" id="collapseRenameRegulation">
+                </div>
+                <p>Версия {{ regulation_version.version_number }}</p>
+            </div>
+            <div class="col">
+                <p class="m-0">Дата создания {{ regulation_version.created.strftime('%d.%m.%y %H:%M') }}</p>
+                <p>Статус <em>{{ regulation_version.status }}</em></p>
+            </div>
+        </div>
+        <div class="row">
+            <form class="col" method="POST" onchange="this.submit()" action='{{ url_for('main.save_comment', user_id=current_user.id, regulation_version_id=regulation_version.id) }}' id='commentator'>
+                <div class="form-group" id='headers'>
+                    <div id='hdrs' class="p-3" style="background: lightgray">
+                        <b>Шапка документа</b>
+                        <div class="">
+                            <label for='header_application'>Отметка о приложении</label>
+                            <textarea readonly class='form-control' name='header_application' id='header_application'>{{ data['header_application'] }}</textarea>
+                        </div>
+                        <div>
+                            <label for='header_name'>Наименование приложения</label>
+                            <textarea readonly class='form-control' name='header_name'  id='header_name'>{{ data['header_name'] }}</textarea>
+                            <p class="mb-0 mt-3">Ссылки на используемые документы:</p>
+                            <ol>
+                                {% for doc in regulation_base_documents %}
+                                    <li><a href="{{ doc.link }}" target="_blank">{{ doc.link }}</a></li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-3" form="editor" type="submit">Сохранить</button>
+                    <a class="btn btn-secondary mt-3" href="{{ url_for('main.index') }}">Закрыть</a>
+                </div>
+                <div class="p-3 main-text">
+                    <p><b>Основной текст</b></p>
+                </div>
+                <button class="btn btn-primary" form="editor" type="submit">Сохранить</button>
+                <a class="btn btn-secondary" href="{{ url_for('main.index') }}">Закрыть</a>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script>
+        {# загрузка текста #}
+        let data = {{ data|safe }};
+        let pattern = /chapter_\d/;
+        let chapters = [];
+        for (let item in data) if (item.match(pattern)) chapters.push({'text': data[item]})
+        let index = 0;
+        for (let chapter in chapters) {
+            index++
+            let main_text_wrapper = $('.main-text')
+            let chapter_wrapper_node = $(`<div class="chapter_${index} accordion" id="accordion_chapter_${index}"></div>`)
+            let accordeon_card = $(`<div class="card"></div>`)
+            chapter_wrapper_node.append(accordeon_card)
+            let card_header = $(`<div class="card-header" id="heading_chapter_${index}"></div>`)
+            accordeon_card.append(card_header)
+            let accordeon_name = $(`<h5 class="mb-0"><button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse_chapter_${index}" aria-expanded="true" aria-controls="collapse_chapter_${index}">Раздел ${index} ${chapters[chapter]['text']}</button></h5>`)
+            card_header.append(accordeon_name)
+
+            let collapse_node = $(`<div id="collapse_chapter_${index}" class="collapse show" aria-labelledby="heading_chapter_${index}" data-parent="#accordion_chapter_${index}"></div>`)
+            accordeon_card.append(collapse_node)
+
+            let card_body_node = $(`<div class="card-body"></div>`)
+            collapse_node.append(card_body_node)
+
+
+            let chapter_header_node = $(`<p class="mb-0 mt-2">Раздел ${index}</p>`)
+            let chapter_node = $(`<textarea readonly style="background: white" class="form-control text-left" id=chapter_name_${index} name="chapter_${index}" placeholder="Заголовок раздела">${chapters[chapter]['text']}</textarea>`)
+
+            let paragraph_pattern = new RegExp('paragraph_'+(Number(chapter)+1).toString()+'_\\d')
+            let paragraphs = [];
+            for (let item in data) {
+                if (item.match(paragraph_pattern)) paragraphs.push({'text': data[item]})
+            }
+
+            card_body_node.append(chapter_header_node, chapter_node)
+            main_text_wrapper.append(chapter_wrapper_node)
+
+
+            for (let paragraph in paragraphs) {
+                let paragraph_header_node = $(`<p class="ml-3 mb-0 mt-3" id=paragraph_name_${Number(paragraph)+1}_${Number(paragraph)+1}>Пункт ${Number(chapter)+1}.${Number(paragraph)+1}</p>`)
+                let paragraph_node = $(`<textarea readonly style="background: white;" rows="15"  class="form-control ml-3 mr-3" name=paragraph_${Number(chapter)+1}_${Number(paragraph)+1}>${paragraphs[paragraph]['text']}</textarea>`)
+                let comment_node = $(`<textarea rows="4" class="form-control ml-3 mr-3" name="comment_${Number(chapter)+1}.${Number(paragraph)+1}" placeholder="Комментировать пункт ${Number(chapter)+1}.${Number(paragraph)+1}"></textarea>`)
+                card_body_node.append(paragraph_header_node, paragraph_node, comment_node)
+            }
+            let comments = {{ comments|safe }};
+            for (let comment of comments) {
+                console.log(comment)
+            }
+        }
+    </script>
+{% endblock %}
