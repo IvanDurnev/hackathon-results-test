@@ -1,0 +1,7 @@
+<ul class="list-unstyled">
+{% for user in users %}
+    <li>
+        <a href="#" onclick="addExecutor({{ user.id }}, '{{ user }}');">{{ user }} ({{ user.get_group() }})</a>
+    </li>
+{% endfor %}
+</ul>

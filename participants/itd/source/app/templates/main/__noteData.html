@@ -1,0 +1,15 @@
+<textarea rows="15">{{ note.text }}</textarea>
+{% if note.sound_file != None %}
+    <audio controls>
+        <source src="{{ url_for('static', filename='uploads/'+note.sound_file) }}" type="audio/ogg">
+    </audio>
+{% endif %}
+<a class="btn btn-success">Сохранить</a>
+<a class="btn btn-success">Преобразовать в поручение</a>
+<a class="btn btn-danger">Удалить</a>
+
+<style>
+    textarea {
+        width: 100%;
+    }
+</style>

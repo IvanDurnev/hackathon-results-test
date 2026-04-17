@@ -1,0 +1,46 @@
+<div class="modal fade" id="createQuestion" tabindex="-1" role="dialog" aria-labelledby="chatInfoModalCenter" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Создать вопрос</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="container col-sm-6 form-signin" action="" method="post" style="padding: 2%" enctype="multipart/form-data">
+                    {{ create_question_form.hidden_tag() }}
+
+                    {{ create_question_form.question_type.label }}
+                    {{ create_question_form.question_type(class='form-control') }}
+
+                    {{ create_question_form.question_text.label }}
+                    {{ create_question_form.question_text(rows=5, class='form-control') }}
+
+                    {{ create_question_form.variants.label }}
+                    {{ create_question_form.variants(rows=5, class='form-control', placeholder='После каждого варианта нажмите Enter. После правильного варианта напишите (верный)') }}
+
+                    {{ create_question_form.question_content.label }}
+                    {{ create_question_form.question_content(class='form-control') }}
+
+                    {{ create_question_form.answer_type.label }}
+                    {{ create_question_form.answer_type(class='form-control') }}
+
+                    {{ create_question_form.answer_text.label }}
+                    {{ create_question_form.answer_text(rows=5, class='form-control') }}
+
+                    {{ create_question_form.answer_content.label }}
+                    {{ create_question_form.answer_content(class='form-control') }}
+
+                    {{ create_question_form.answer_explanation.label }}
+                    {{ create_question_form.answer_explanation(rows=5, class='form-control') }}
+
+                    {{ create_question_form.save_question(class="btn btn-lg btn-primary form-control") }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>

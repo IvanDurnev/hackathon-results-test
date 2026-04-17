@@ -1,0 +1,135 @@
+{% if order.done %}
+    <input checked="checked" type="checkbox" id="blankCheckbox" value="{{ order.done }}"><span class="ml-2 badge {{ order.get_status().description }}">{{ order.get_status().title }}</span>
+{% else %}
+    <input type="checkbox" id="blankCheckbox" value="{{ order.done }}"><span class="ml-2 badge {{ order.get_status().description }}">{{ order.get_status().title }}</span>
+{% endif %}
+
+<br>
+<br>
+<a class="btn btn-success float-right" onclick="decompose('{{order.id}}')">Создать поручение на основании данного</a>
+<h3 class="mb-0">{{ order.title }}</h3>
+<p class="small m-0">Создана {{ order.creation_date.strftime('%d.%m.%y %H:%M:%S') }}</p>
+<p class="small m-0">Автор {{ order.get_creator() }}</p>
+<div class="dropdown">
+  <a class="small dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Исполнителей: {{ order.executors|length }}
+  </a>
+
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+      {% for user in order.executors %}
+          <a class="dropdown-item" href="#">{{ user }}</a>
+{#    <a class="dropdown-item" href="#">Action</a>#}
+{#    <a class="dropdown-item" href="#">Another action</a>#}
+{#    <a class="dropdown-item" href="#">Something else here</a>#}
+      {% endfor %}
+  </div>
+</div>
+<p class="mt-3">Подробное описание: {{ order.description }}</p>
+
+{% if order.description_sound != None %}
+    <audio controls>
+        <source src="{{ url_for('static', filename='uploads/'+order.description_sound) }}" type="audio/ogg">
+    </audio>
+{% endif %}
+{% with prio = {1: '<span class="badge badge-secondary">Низкий</span>', 2: '<span class="badge badge-warning">Средний</span>', 3: '<span class="badge badge-danger">Высокий</span>'} %}
+<p>Приоритет: {{ prio[order.priority] | safe }}</p>
+{%endwith%}
+<div class="graphic{{order.id}}">
+    <!-- <h4>График Времени </h4> -->
+    <div class="graph" id="donut{{order.id}}" style="height: 200px; width: 200px"></div>
+    <script>
+        Morris.Donut({
+            element: 'donut{{order.id}}',
+            data: [
+            {label: "Времени прошло", value: {{ int((time.timestamp() - order.creation_date.timestamp())/60/60) }} },
+            {label: "Времени осталось", value: {{ 0 if int((order.deadline.timestamp() - time.timestamp())/60/60) <= 0 else int((order.deadline.timestamp() - time.timestamp())/60/60) }}}
+            
+            ]
+        });
+    </script>
+</div>
+<p>Дэдлайн {{ order.deadline.strftime('%d.%m.%y %H:%M:%S') }}</p>
+
+{%if derived_orders%}
+<h3>Декомпозированные задачи</h3>
+<h4>Статус выполнения</h4>
+<div class="progress" style="height: 20px;">
+    <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{orders_stats['ready']/orders_stats['total']*100}}%;" aria-valuenow="{{orders_stats['ready']}}" aria-valuemin="0" aria-valuemax="{{orders_stats['total']}}"></div>
+
+</div>
+  <br>
+  <div class="container">
+  <div class="row">
+{%for i in derived_orders%}
+<div class="card col-4">
+    <div class="card-body">
+        <p class="badge None">{{i.get_status().title}}</p>
+        <div class="input-group">
+            <div class="form-check">
+
+                    <input class="form-check-input position-static" type="checkbox" id="blankCheckbox" {%if i.done == True%}checked{%endif%} value={{i.done}} aria-label="...">
+
+            </div>
+            <a href="#" onclick="get_order({{i.id}})"><h4 class="card-title">{{i.title}}</h4></a>
+            <br>
+            <div class="card-text">
+                <span class="">Срок выполнения {{i.deadline}}</span>
+                <p class=""><span>Автор: {{i.get_creator()}} </span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{%endfor%}
+  </div>
+  </div>
+{%endif%}
+
+<div class="comments-area">
+    <h4>Комментарии:</h4>
+
+    <ul class="list-group" style="overflow-y: auto;">
+        {% for comment in comments %}
+            <li class="list-group-item"><b>{{ comment.get_user() }}</b>: {{ comment.text }}</li>
+        {% endfor %}
+    </ul>
+
+    <form class="mt-5" onsubmit="sendComment({{ order.id }}, {{ current_user.id }});">
+        <p class="mb-0">Добавить комментарий</p>
+        <input class="form-control" id='comment_field' type="text"> 
+        <button class="btn btn-success" type="button" id='voicecomment' rec='false' onclick="event.preventDefault(); cmt_btn_voice()">Записать аудио</button>
+        <button class="btn btn-info" type="submit">Добавить</button>
+    </form>
+</div>
+
+<script>
+    function cmt_btn_voice () {
+        thisbtn = document.getElementById('voicecomment')
+        if (document.getElementById('voicecomment').getAttribute('rec') == 'false') {
+            start_rec();
+            thisbtn.classList.add('btn-danger')
+            thisbtn.classList.remove('btn-success')
+            thisbtn.innerHTML = 'Остановить запись'
+            document.getElementById('voicecomment').setAttribute('rec', 'true')
+        } else {
+            document.getElementById('voicecomment').setAttribute('rec', 'false')
+            thisbtn.classList.remove('btn-danger')
+            thisbtn.classList.add('btn-success')
+            thisbtn.innerHTML = 'Записать аудио'
+            voice_input(document.getElementById('comment_field'), stop_rec())
+        }
+    }
+</script>
+
+<style>
+    .comments-area {
+        position: relative;
+        bottom: 0;
+        width: 100%;
+        background-color: #ECECEC;
+        padding: 1%;
+        margin-top: 3%;
+        border-radius: 15px;
+    }
+</style>
+
+

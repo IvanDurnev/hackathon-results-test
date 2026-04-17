@@ -1,122 +1,17 @@
-{% extends 'base.html' %}
+{% extends 'main/base.html' %}
 
-{% block header %}
-
-        <nav class="navbar navbar-light bg-d mb-3">
-            <a class="navbar-brand" href="#">Канбала</a>
-            <div class="text-right p-3">
-                <a href="#" class="mr-3 menu--text proffile">Мой профиль</a>
-                <a class="menu--text" href="{{ url_for('auth.logout') }}">Выйти</a>
-            </div>
-        </nav>
-
+{% block navbar %}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-4">
-                <div class="jumbotron p-5">
-                    <div class="rounded-circle text-center ml-auto mr-auto mb-2" style="background: url({{ url_for('static', filename='images/user.png') }}); height: 100px; width: 100px; background-size: contain;"></div>
-                    <p class="text-center font-weight-bolder m-0 size24" >{{ user.username }}</p>
-                    <p class="m-0 text-center font-weight-light"><em>{{ user.organization }}</em></p>
-                    <p class="mb-3 text-center font-weight-light"><em>{{ user.position }}</em></p>
-                    <p class="size14"><span class="badge badge-primary badge-pill">{{ users_regulations|length }}</span> создано регламентов</p>
-                    <p class="size14"><span class="badge badge-primary badge-pill">{{ 0 }}</span> согласовано регламентов</p>
-                    <p class="size14"><span class="badge badge-primary badge-pill mb-5">{{ 0 }}</span> регламентов на согласовании</p>
-{#                    <div style="background: url({{ url_for('static', filename='images/diagr.jpg') }}); width: 300px; height: 300px; background-size: contain; background-repeat: no-repeat"></div>#}
-{#                    <div style="background: url({{ url_for('static', filename='images/diagr_2.jpg') }}); width: 300px; height: 300px; background-size: contain; background-repeat: no-repeat"></div>#}
-                    <b class="text-center mt-5">Количество регламентов по ведомствам</b>
-                    <div id='apex' style="width: 350px; height: 300px"></div>
-                    <link rel="stylesheet" href="{{ url_for('static', filename='css/apexcharts.css') }}" type="text/css">
-                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-                    <script>
-                        var chart = new ApexCharts(document.getElementById("apex"), {
-                            chart: {
-                            type: 'pie'
-                            },
-                            series: [44, 55, 13, 33],
-                            labels: ['МЭР', 'МинСтрой', 'МинСоцРазвития', 'МинФин']
-                        });
-                        chart.render()
-                    </script>
-                </div>
-            </div>
-            <div class="col-8">
-                <form class="container-fluid p-0 mt-1 ml-3" method="post">
-                    <div class="row">
-                    <input class="form-control col-8" type="text" placeholder="Найти документ">
-                    <button type="submit" class="btn btn-primary mb-2 col-2 ml-2">Найти</button>
-                    </div>
-                </form>
-
-                <h5 class="mt-4 mb-3">Мои регламенты</h5>
-                <div class="jumbotron p-3">
-                    <ol>
-                        {% for regulation in users_regulations %}
-                            <li>
-                                {{ regulation.short_name }}
-                                <ul>
-                                    {% for version in regulation.get_versions() %}
-                                        <li>
-                                            <a href="{{ url_for('main.regulation_show', regulation_version_id=version.id) }}">Версия {{ version.version_number }}</a>
-                                            {% if version.status == 'Черновик' %}
-                                                <span class="badge badge-dark">{{ version.status }}</span>
-                                            {% elif version.status == 'Согласован' %}
-                                                <span class="badge badge-success">{{ version.status }}</span>
-                                            {% else %}
-                                                <span class="badge badge-primary">{{ version.status }}</span>
-                                            {% endif %}
-                                            <a href="{{ url_for('main.show_regulation_comment_mode', regulation_version_id=version.id) }}">В режиме комментирования</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </li>
-                        {% endfor %}
-                    </ol>
-                <a href="{{ url_for('main.regulation_create') }}" class="btn btn-primary text-light mt-2">Создать новый регламент</a>
-                </div>
-
-        <h5 class="sogl mb-3">Регламенты на одобрении</h5>
-                <div class="jumbotron p-3">
-                    <ol>
-                    {% for regulation in users_regulations %}
-                    {% for version in regulation.get_versions() %}
-                    {% if version.status == 'В работе' %}
-                            <li>
-                                {{ regulation.short_name }}
-                                <ul>
-                                        <li>
-                                            <a href="{{ url_for('main.regulation_show', regulation_version_id=version.id) }}">Версия {{ version.version_number }}</a>
-                                        </li>
-                                </ul>
-                            </li>
-                    {% endif %}
-                    {% endfor %}
-                    {% endfor %}
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
+    <main>
+        {% include 'main/__main_content.html' %}
+    </main>
+    {% include 'main/__modalCreateOrder.html'%}
+    {% include 'main/__modalCreateNote.html' %}
 {% endblock %}
 
 {% block scripts %}
-<script>
-$(function(){
-	$(".proffile").hover(function(){
-		$(this).next().show(0).after('<div class="hint-fade">');
-		return false;
-	});
-
-	$(".hint-close").click(function(){
-		$(".hint-popup").hide(0);
-		$(".hint-fade").remove();
-		return false;
-	});
-});
-</script>
+    {{ super() }}
 {% endblock %}
+

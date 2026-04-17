@@ -1,0 +1,11 @@
+**/__pycache__
+__pycache__
+migrations
+.env
+app/static/applications/*
+.vscode/settings.json
+.idea/canbala.iml
+app/.idea/
+app/.stversions/
+venv/
+.idea/kanbala.iml

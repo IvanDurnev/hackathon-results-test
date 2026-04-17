@@ -1,0 +1,158 @@
+<!-- Modal -->
+<div class="modal fade" id="modalCreateNote" tabindex="-1" role="dialog" aria-labelledby="modalCreateNoteLabel"  data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Создать заметку</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createOrderForm" name="createOrderForm" class="form-signin" action="" method="post">
+                    {{ create_note_form.hidden_tag() }}
+
+                    {{ create_note_form.text.label(class='mb-0 mt-2') }}
+                    {{ create_note_form.text(size=32, id='voicenote', rec='false', class='col-sm-12 form-control', type='text', placeholder='Текст заметки') }}
+                    {% for error in create_note_form.text.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                    <button type="button" onclick="event.preventDefault(); note_btn_voice()" class="form-control btn btn-success mt-5" id='voicenote_btn'>Записать аудио</button>
+                    {{ create_order_form.submit(class="form-control btn btn-success mt-5") }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function note_btn_voice () {
+        thisbtn = document.getElementById('voicenote_btn')
+        if (document.getElementById('voicenote').getAttribute('rec') == 'false') {
+            start_rec();
+            thisbtn.classList.add('btn-danger')
+            thisbtn.classList.remove('btn-success')
+            thisbtn.innerHTML = 'Остановить запись'
+            document.getElementById('voicenote').setAttribute('rec', 'true')
+        } else {            
+            document.getElementById('voicenote').setAttribute('rec', 'false')
+            thisbtn.classList.remove('btn-danger')
+            thisbtn.classList.add('btn-success')
+            thisbtn.innerHTML = 'Записать аудио'
+            voice_input(document.getElementById('voicenote'), stop_rec())
+        }
+    }
+</script>
+
+{#<script>#}
+{#    let rec = $('#rec_btn')#}
+{#    let stop = $('#stop_btn')#}
+{#    rec.click( (event)=>{#}
+{#        event.preventDefault();#}
+{#        start_rec();#}
+{#    })#}
+{#    stop.click((event)=>{#}
+{#        event.preventDefault();#}
+{#        dl(stop_rec());#}
+{#    })#}
+{#    var f;#}
+{#    var chunks = []#}
+{#    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {#}
+{#        console.log(stream)#}
+{#        f = new MediaRecorder(stream);#}
+{#        f.ondataavailable = function (e) {#}
+{#            chunks.push(e.data)#}
+{#        }#}
+{#    })#}
+{##}
+{#    function start_rec() {#}
+{#        chunks = []#}
+{#        f.start()#}
+{#    }#}
+{##}
+{#    function stop_rec() {#}
+{#        f.stop()#}
+{#        return chunks#}
+{#    }#}
+{##}
+{#    function dl(stream) {#}
+{#        var fobj#}
+{#        return setTimeout(function () {#}
+{#            fobj = new Blob([stream[0]], { type: "application/octet-stream" })#}
+{#            obj = window.URL.createObjectURL(fobj);#}
+{#            let data = new FormData();#}
+{#            data.append('audio', fobj, "sound.ogg")#}
+{#            xhr = new XMLHttpRequest();#}
+{#            xhr.open("POST", "/recognize_file", true)#}
+{#            xhr.onload = function () {#}
+{#                console.log(JSON.parse(xhr.responseText))#}
+{#                let recognized_text = JSON.parse(xhr.responseText)#}
+{#                $('#description').val(recognized_text.stt)#}
+{##}
+{#                let fileIdNode = $(`<input name="file_id" value="${recognized_text.file_id}" type="hidden">`)#}
+{#                $('#createOrderForm').append(fileIdNode)#}
+{##}
+{#            }#}
+{#            xhr.send(data)#}
+{#        }, 500)#}
+{#    }#}
+{##}
+{#    let task_priority = $('.task-priority')#}
+{#    task_priority.change(changePriority)#}
+{##}
+{#    function changePriority(e) {#}
+{#        console.log(e)#}
+{#    }#}
+{##}
+{#    let soundFileNode = $('.sound-file')#}
+{#    soundFileNode.change((element)=>{#}
+{#        let soundFile=element.target.files[0]#}
+{#        console.log(soundFile)#}
+{##}
+{#        let data = new FormData();#}
+{#        data.append('file', soundFile)#}
+{#        console.log(data)#}
+{##}
+{#        $.ajax({#}
+{#            url: '/recognise_file',#}
+{#            type: 'POST',#}
+{#            data: data,#}
+{#        })#}
+{#    })#}
+{#</script>#}
+{##}
+{#<script>#}
+{# конструктор кастомных ответов на задачу #}
+{#let responseFields = $('.response-field')#}
+{#responseFields.click((el)=>{#}
+{#    let responseNode;#}
+{#    let responseDescription;#}
+{#    let responseData;#}
+{##}
+{#    let fieldsCount =  $('.response-fields').find('*').length#}
+{#    console.log(fieldsCount)#}
+{##}
+{#    if (el.target.text == 'Текст') {#}
+{#        responseNode = $('<div class="p-2"></div>')#}
+{#        responseDescription = $('<span class="mr-2">Текстовое поле</span>')#}
+{#        responseData = $(`<input name="text-field-${fieldsCount}" type="text" placeholder="Название">`)#}
+{#    }#}
+{#    if (el.target.text == 'Чекбокс') {#}
+{#        responseNode = $('<div class="p-2"></div>')#}
+{#        responseDescription = $('<span class="mr-2">Чекбокс</span>')#}
+{#        responseData = $(`<input name="checkbox-field-${fieldsCount}" type="text" placeholder="Название">`)#}
+{#    }#}
+{#    if (el.target.text == 'Файл') {#}
+{#        responseNode = $('<div class="p-2"></div>')#}
+{#        responseDescription = $('<span class="mr-2">Поле загрузки файла</span>')#}
+{#        responseData = $(`<input name="file-field-${fieldsCount}" type="text" placeholder="Название">`)#}
+{#    }#}
+{##}
+{#    responseNode.append(responseDescription, responseData)#}
+{#    $('.response-fields').append(responseNode)#}
+{##}
+{#})#}
+{#</script>#}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+    <form class="form-signin container col-sm-6" action="" method="post">
+        <h3 class="white text-center">РЕГИСТРАЦИЯ</h3>
+        {{ form.hidden_tag() }}
+
+        {{ form.username.label() }}<br>
+        {{ form.username(size=32, class='col-sm-12', type='text', placeholder='ФИО') }}<br>
+        {% for error in form.username.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.email.label() }}<br>
+        {{ form.email(size=64, class='col-sm-12', type='email', placeholder='Внимательно') }}<br>
+        {% for error in form.email.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.organization.label() }}<br>
+        {{ form.organization(size=64, class='col-sm-12', type='email', placeholder='Внимательно') }}<br>
+        {% for error in form.organization.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.position.label() }}<br>
+        {{ form.position(size=64, class='col-sm-12', type='email', placeholder='Внимательно') }}<br>
+        {% for error in form.position.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.password.label() }}<br>
+        {{ form.password(size=32, class='col-sm-12', type='password') }}<br>
+        {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.password2.label() }}<br>
+        {{ form.password2(size=32, class='col-sm-12', type='password') }}<br>
+        {% for error in form.password2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+
+        {{ form.submit(class="btn btn-success") }}
+        <a class="btn btn-primary" href="{{ url_for('auth.login') }}">УЖЕ РЕГИСТРИРОВАЛИСЬ?</a>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/jquery.maskedinput.js') }}"></script>
+    <script>
+        $("#phone").mask("+7 (999) 999-99-99");
+    </script>
+{% endblock %}

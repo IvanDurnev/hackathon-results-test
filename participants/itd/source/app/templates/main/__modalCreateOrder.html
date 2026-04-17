@@ -1,0 +1,291 @@
+<!-- Modal -->
+<div class="modal fade" id="modalCreateOrder" tabindex="-1" role="dialog" aria-labelledby="modalCreateOrderLabel"  data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Создать задачу</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createOrderForm" name="createOrderForm" class="form-signin" action="" method="post">
+                    {{ create_order_form.hidden_tag() }}
+
+                    {{ create_order_form.title.label(class='mb-0 mt-2') }}
+                    {{ create_order_form.title(size=32, class='col-sm-12 form-control', type='text', placeholder='Название задачи') }}
+                    {% for error in create_order_form.title.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+
+                    {{ create_order_form.description.label(class='mb-0 mt-2') }}
+                    {{ create_order_form.description(rows=5, size=32, class='col-sm-12 form-control', type='text', placeholder='Описание задачи') }}
+                    {% for error in create_order_form.description.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                    <p>
+                        <button id="rec_btn" onclick="event.preventDefault()" class="btn btn-danger">Записать голос</button>
+                        <button id="stop_btn" onclick="event.preventDefault()" class="btn btn-primary">Остановить запись</button>
+                    </p>
+
+                    {# used to be file upload
+                        {{ create_order_form.file.label(class='mb-0 mt-2') }}
+                        {{ create_order_form.file(class='sound-file col-sm-12 form-control') }}
+                        {% for error in create_order_form.file.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    #}
+
+                    {{ create_order_form.priority.label(class='mb-0 mt-2') }}
+                    {{ create_order_form.priority(type="range", min="1", max="3", size=32, class='task-priority col-sm-12 form-control') }}
+                    {% for error in create_order_form.description.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+
+                    {{ create_order_form.type.label(class='mb-0 mt-2') }}
+                    {{ create_order_form.type(class='col-sm-12 form-control') }}
+                    {% for error in create_order_form.type.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                    <p id="task-priority-text"></p>
+
+                    {{ create_order_form.interval.label(class='mb-0 mt-2') }}
+                    <p class="mt-0 mb-0 small">Повторяемость в часах. Если 0, то задача единоразовая.</p>
+                    {{ create_order_form.interval(class='col-sm-12 form-control') }}
+                    {% for error in create_order_form.interval.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+
+                    {{ create_order_form.deadline.label(class='mb-0 mt-2') }}
+                    {{ create_order_form.deadline(class='col-sm-12 form-control') }}
+                    {% for error in create_order_form.deadline.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+
+                    <p class='mb-0 mt-2'>Выбрать группу исполнителей</p>
+{#                    {{ create_order_form.executors.label(class='mb-0 mt-2') }}#}
+                    {{ create_order_form.executors(class='col-sm-12 form-control') }}
+                    {% for error in create_order_form.executors.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+
+                    <p class='mb-0 mt-2'>Выбрать исполнителя</p>
+                    <input id="choose-executor" class="form-control" type="text">
+                    <div class="executors-list"></div>
+                    <div class="executors">
+                        Выбраны:
+                    </div>
+
+
+                    <div class="p-3 response-fields">
+                        <p>Добавить поля ответа</p>
+                        <a href="#" class="response-field mr-3">Чекбокс</a>
+                        <a href="#" class="response-field mr-3">Текст</a>
+                        <a href="#" class="response-field mr-3">Файл</a>
+
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                              <label class="input-group-text" for="presetselector">Пресеты</label>
+                            </div>
+                            <select onchange="apply_preset()" class="custom-select" id="presetselector">
+                                <option></option>
+                                {% for i in custom_inputs%}
+                                <option value={{i.id}}>{{i.preset_name}}</option>
+                                {%endfor%}
+                            </select>
+                          </div>
+                    </div>
+
+                    <div id='preset_fields'></div>
+
+                    {{ create_order_form.submit(class="form-control btn btn-success mt-5") }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    preset_dict = {'text': "Текстовое поле",
+                   'checkbox': "Чекбокс",
+                   'file': "Поле загрузки файла"}
+    function apply_preset() {
+        xhr = new XMLHttpRequest()
+        xhr.open("GET", "/get_preset/"+document.getElementById('presetselector').value, true)
+        xhr.onload = function () {
+            pf = $('#preset_fields')
+            pf.empty()
+            counter = 0
+            data = JSON.parse(xhr.responseText)
+            for (i in data) {
+                pf.append(`<div class="p-2">
+                    <span class="mr-2">${preset_dict[data[i].type]}</span>
+                    <input type='text' name='preset_field_${counter}_${data[i].type}' value='${data[i].name}' placeholder='Название'></input>
+            </div>`)
+                counter++
+            }
+        }
+        xhr.send()
+    }
+
+    let rec = $('#rec_btn')
+    let stop = $('#stop_btn')
+    rec.click( (event)=>{
+        event.preventDefault();
+        start_rec();
+    })
+    stop.click((event)=>{
+        event.preventDefault();
+        dl(stop_rec());
+    })
+    var f;
+    var chunks = []
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+        console.log(stream)
+        f = new MediaRecorder(stream);
+        f.ondataavailable = function (e) {
+            chunks.push(e.data)
+        }
+    })
+
+    function start_rec() {
+        chunks = []
+        f.start()
+    }
+
+    function stop_rec() {
+        f.stop()
+        return chunks
+    }
+
+    function voice_input(object, stream) {
+        var fobj
+        return setTimeout(function () {
+            fobj = new Blob([stream[0]], { type: "application/octet-stream" })
+            obj = window.URL.createObjectURL(fobj);
+            let data = new FormData();
+            data.append('audio', fobj, "sound.ogg")
+            xhr = new XMLHttpRequest();
+            xhr.open("POST", "/recognize_file", true)
+            xhr.onload = function () {
+                j = JSON.parse(xhr.responseText)
+                try {
+                    object.value = j.stt
+                } catch {
+                    object.innerText = j.stt
+                }
+            }
+            xhr.send(data)
+        }, 500)
+    }
+
+    function dl(stream) {
+        var fobj
+        return setTimeout(function () {
+            fobj = new Blob([stream[0]], { type: "application/octet-stream" })
+            obj = window.URL.createObjectURL(fobj);
+            let data = new FormData();
+            data.append('audio', fobj, "sound.ogg")
+            xhr = new XMLHttpRequest();
+            xhr.open("POST", "/recognize_file", true)
+            xhr.onload = function () {
+                console.log(JSON.parse(xhr.responseText))
+                let recognized_text = JSON.parse(xhr.responseText)
+                $('#description').val(recognized_text.stt)
+
+                let fileIdNode = $(`<input name="file_id" value="${recognized_text.file_id}" type="hidden">`)
+                $('#createOrderForm').append(fileIdNode)
+
+            }
+            xhr.send(data)
+        }, 500)
+    }
+
+    let task_priority = $('.task-priority')
+    task_priority.change(changePriority)
+
+    function changePriority(e) {
+        console.log(e)
+    }
+
+    let soundFileNode = $('.sound-file')
+    soundFileNode.change((element)=>{
+        let soundFile=element.target.files[0]
+        console.log(soundFile)
+
+        let data = new FormData();
+        data.append('file', soundFile)
+        console.log(data)
+
+        $.ajax({
+            url: '/recognise_file',
+            type: 'POST',
+            data: data,
+        })
+    })
+</script>
+
+<script>
+{# конструктор кастомных ответов на задачу #}
+let responseFields = $('.response-field')
+responseFields.click((el)=>{
+    let responseNode;
+    let responseDescription;
+    let responseData;
+
+    let fieldsCount =  $('.response-fields').find('*').length
+    console.log(fieldsCount)
+
+    if (el.target.text == 'Текст') {
+        responseNode = $('<div class="p-2"></div>')
+        responseDescription = $('<span class="mr-2">Текстовое поле</span>')
+        responseData = $(`<input name="text-field-${fieldsCount}" type="text" placeholder="Название">`)
+    }
+    if (el.target.text == 'Чекбокс') {
+        responseNode = $('<div class="p-2"></div>')
+        responseDescription = $('<span class="mr-2">Чекбокс</span>')
+        responseData = $(`<input name="checkbox-field-${fieldsCount}" type="text" placeholder="Название">`)
+    }
+    if (el.target.text == 'Файл') {
+        responseNode = $('<div class="p-2"></div>')
+        responseDescription = $('<span class="mr-2">Поле загрузки файла</span>')
+        responseData = $(`<input name="file-field-${fieldsCount}" type="text" placeholder="Название">`)
+    }
+
+    responseNode.append(responseDescription, responseData)
+    $('.response-fields').append(responseNode)
+
+})
+</script>
+
+<script>
+{#    выбор конкретного исполнителя #}
+let chooseExecutorInput = $('#choose-executor')
+chooseExecutorInput.keypress(getUserByLastName)
+
+function getUserByLastName() {
+    let text = chooseExecutorInput.val()
+
+    if (text.length > 1) {
+        $.ajax({
+            url: `/get_users_${text}`,
+            type: 'GET',
+            success: showUsersList
+        })
+    }
+    if (text.length === 0) $('.executors-list').empty()
+}
+
+function showUsersList(data) {
+    $('.executors-list').empty()
+    $('.executors-list').append(data)
+}
+
+function addExecutor(userID, username) {
+    $('.executors').append($(`<input style="border: none" type="text" name="executor-${userID}" readonly value="${username}">`))
+    $('.executors-list').empty()
+}
+
+</script>

@@ -1,0 +1,305 @@
+<div class="main-container container-fluid">
+    <div class="row">
+        <div class="menu col-lg-2">
+            <div class="media mb-3">
+                <div class="btn-group">
+                    <button type="button" class="btn">{{ current_user.first_name }} {{ current_user.last_name }}</button>
+                    <button type="button" class="btn dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">Профиль</a>
+                        {% if current_user.role == 'admin' or current_user.role == 'moderator' %}
+                            <a class="dropdown-item" href="{{ url_for('admin.admin') }}">Админка</a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <li class="nav-item">
+                    <a href="#income" class="nav-link active" id="v-pills-home-tab" data-toggle="pill" role="tab" aria-controls="v-pills-home" aria-selected="true">Входящие задачи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#send" role="tab" aria-controls="send" aria-selected="false">Исходящие задачи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#notes" role="tab" aria-controls="send" aria-selected="false">Заметки</a>
+                </li>
+{#                <li class="nav-item">#}
+{#                    <a class="nav-link disabled" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Дашборд</a>#}
+{#                </li>#}
+{#                <li class="nav-item">#}
+{#                    <a class="nav-link disabled" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Журнал</a>#}
+{#                </li>#}
+{#                <li>#}
+{#                    <a class="nav-link disabled" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Архив</a>#}
+{#                </li>#}
+                <li>
+                    <a class="btn btn-success mt-3" id='neworder' data-toggle="modal" data-target="#modalCreateOrder" >Создать задачу</a>
+                </li>
+                <li>
+                    <a class="btn btn-success mt-2" data-toggle="modal" data-target="#modalCreateNote">Создать заметку</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-lg-3 second-menu">
+            <div class="btn-group">
+                <h2>Все документы</h2>
+                <button type="button" class="btn dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <span class="sr-only"></span>
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">Action </a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else here</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Separated link</a>
+                </div>
+            </div>
+
+            <div class="tab-content" id="v-pills-tabContent">
+
+                <div class="tab-pane fade show active" id="income" role="tabpanel" aria-labelledby="income-tab">
+
+                    <hr align="center" width="100%" size="2" color="black" />
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="pills-tasks-tab-executor" data-toggle="pill" href="#pills-tasks-executor" role="tab" aria-controls="pills-tasks-executor" aria-selected="true">Поручения</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="pills-info-tab-executor" data-toggle="pill" href="#pills-info-executor" role="tab" aria-controls="pills-info-executor" aria-selected="true">Информационные</a>
+                        </li>
+                    </ul>
+                    <hr align="center" width="100%" size="2" color="black" />
+
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-tasks-executor" role="tabpanel" aria-labelledby="pills-tasks-tab-executor">
+                            {% for order in list(reversed(orders_iam_executor)) %}
+                                {% if order.reactions %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="badge {{ order.get_status().description }}">{{ order.get_status().title }}</p>
+                                            <div class="input-group">
+                                                <div class="form-check">
+                                                    {% if order.done %}
+                                                        <input class="form-check-input position-static" checked="checked" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% else %}
+                                                        <input class="form-check-input position-static" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% endif %}
+                                                </div>
+                                                <a href="#" onclick="get_order({{ order.id }})"><h4 class="card-title">{{ order.title }}</h4></a>
+                                                <div class="card-text">
+                                                    <span class="">Срок выполнения {{ order.deadline }}</span>
+                                                    <p class=""><span>Автор: {{ order.get_creator().first_name }} {{ order.get_creator().last_name }}</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            {% if order.done %}
+                                                <a class="btn btn-warning">Архивировать</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="tab-pane fade" id="pills-info-executor" role="tabpanel" aria-labelledby="pills-info-tab-executor">
+                            {% for order in orders_iam_executor %}
+                                {% if not order.reactions %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="badge {{ order.get_status().description }}">{{ order.get_status().title }}</p>
+                                            <div class="input-group">
+                                                <div class="form-check">
+                                                    {% if order.done %}
+                                                        <input class="form-check-input position-static" checked="checked" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% else %}
+                                                        <input class="form-check-input position-static" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% endif %}
+                                                </div>
+                                                <a href="#" onclick="get_order({{ order.id }})"><h4 class="card-title">{{ order.title }}</h4></a>
+                                                <div class="card-text">
+                                                    <span class="">Срок выполнения {{ order.deadline }}</span>
+                                                    <p class=""><span>Автор: {{ order.get_creator().first_name }} {{ order.get_creator().last_name }}</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            {% if order.done %}
+                                                <a class="btn btn-warning">Архивировать</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="send" role="tabpanel" aria-labelledby="send-tab">
+                    <hr align="center" width="100%" size="2" color="black" />
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="pills-tasks-tab-creator" data-toggle="pill" href="#pills-tasks-creator" role="tab" aria-controls="pills-tasks-creator" aria-selected="true">Поручения</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="pills-info-tab-creator" data-toggle="pill" href="#pills-info-creator" role="tab" aria-controls="pills-info-creator" aria-selected="true">Информационные</a>
+                        </li>
+                    </ul>
+                    <hr align="center" width="100%" size="2" color="black" />
+
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-tasks-creator" role="tabpanel" aria-labelledby="pills-tasks-tab-creator">
+                            {% for order in list(reversed(orders_iam_creator)) %}
+                                {% if order.reactions %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="badge {{ order.get_status().description }}">{{ order.get_status().title }}</p>
+                                            <div class="input-group">
+                                                <div class="form-check">
+                                                    {% if order.done %}
+                                                        <input class="form-check-input position-static" checked="checked" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% else %}
+                                                        <input class="form-check-input position-static" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% endif %}
+                                                </div>
+                                                <a href="#" onclick="get_order({{ order.id }})"><h4 class="card-title">{{ order.title }}</h4></a>
+                                                <div class="card-text">
+                                                    <span class="">Срок выполнения {{ order.deadline }}</span>
+                                                    <p class=""><span>Автор: {{ order.get_creator().first_name }} {{ order.get_creator().last_name }}</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            {% if order.done %}
+                                                <a class="btn btn-warning">Архивировать</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="tab-pane fade" id="pills-info-creator" role="tabpanel" aria-labelledby="pills-info-tab-creator">
+                            {% for order in orders_iam_creator %}
+                                {% if not order.reactions %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="badge {{ order.get_status().description }}">{{ order.get_status().title }}</p>
+                                            <div class="input-group">
+                                                <div class="form-check">
+                                                    {% if order.done %}
+                                                        <input class="form-check-input position-static" checked="checked" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% else %}
+                                                        <input class="form-check-input position-static" type="checkbox" id="blankCheckbox" value="{{ order.done }}" aria-label="...">
+                                                    {% endif %}
+                                                </div>
+                                                <a href="#" onclick="get_order({{ order.id }})"><h4 class="card-title">{{ order.title }}</h4></a>
+                                                <div class="card-text">
+                                                    <span class="">Срок выполнения {{ order.deadline }}</span>
+                                                    <p class=""><span>Автор: {{ order.get_creator().first_name }} {{ order.get_creator().last_name }}</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            {% if order.done %}
+                                                <a class="btn btn-warning">Архивировать</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="send-tab">
+                    <ul>
+                        {% for note in list(reversed(current_user.get_notes())) %}
+                            <li>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="input-group">
+                                            <div class="card-text">
+                                                <p style="overflow: hidden; text-overflow: ellipsis; max-height: 100px;">{{ note.text }}</p>
+                                                <span class="small">Дата создания: {{ note.creation_date }}</span>
+                                            </div>
+                                        </div>
+                                        <a href="#" onclick="get_note({{ note.id }});">Подробно</a>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="detailed_info" class="col-lg-7 third-menu"></div>
+    </div>
+</div>
+<script>
+
+    function decompose(id) {
+        xhr = new XMLHttpRequest()
+        xhr.open("GET", "/get_order_json/"+id, true)
+        xhr.onload = function () {
+            a = document.getElementById('neworder')
+            a.click()
+            j = JSON.parse(xhr.responseText)
+            console.log(j)
+            $("#createOrderForm").append(`<input type='hidden' name='baseorder' value='${j.id}'></input>`)
+            $("#title").val(j.title)
+            $('#description').val(j.description)
+            $('#type').val(j.type)
+            $("#deadline").val(j.deadline)
+        }
+        xhr.send()
+    }
+
+    function get_note(noteId) {
+        $.ajax({
+            url: `/get_note_${noteId}`,
+            method: "GET",
+            success: showNote
+        });
+    }
+
+    function showNote(data) {
+        $('#detailed_info').empty();
+        $('#detailed_info').append($(data));
+    }
+
+    function get_order(orderID) {
+        $.ajax({
+            url: `/get_order_${orderID}`,
+            method: "GET",
+            success: showOrder
+        });
+    }
+
+    function showOrder(data) {
+        $('#detailed_info').empty();
+        $('#detailed_info').append($(data));
+    }
+
+    function sendComment(orderID, userID) {
+        let text = $(event.currentTarget).find('input').val()
+
+        $.ajax({
+            url: `/send_comment`,
+            method: "POST",
+            success: showNote,
+            data: {
+                'order': orderID,
+                'user': userID,
+                'text': text
+            }
+        });
+        get_order(orderID);
+    }
+</script>

@@ -7,18 +7,21 @@ from app.models import User
 
 class LoginForm(FlaskForm):
     login = StringField('Имя пользователя', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
+    # password = PasswordField('Пароль', validators=[DataRequired()])
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('ВОЙТИ')
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Ваши ФИО', validators=[DataRequired()])
-    email = EmailField('Ваш email', validators=[DataRequired()])
-    organization = StringField('Ваше место работы', validators=[DataRequired()])
-    position = StringField('Ваша должность', validators=[DataRequired()])
+    # username = StringField('Логин', validators=[DataRequired()])
+    first_name = StringField('Имя', validators=[DataRequired()])
+    last_name = StringField('Фамилия')
+    email = EmailField('E-mail', validators=[DataRequired()])
+    phone = TelField('Телефон', validators=[DataRequired()])
+    group = SelectField('Подразделение')
     password = PasswordField('Пароль', validators=[DataRequired()])
     password2 = PasswordField('Повторите пароль', validators=[DataRequired(), EqualTo('password', message='Пароли не совпадают')])
+    tg_id = StringField('TG id')
     submit = SubmitField('ЗАРЕГИСТРИРОВАТЬСЯ')
 
     def validate_username(self, username):
@@ -33,6 +36,11 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Пользователь с такой почтой уже есть в системе.')
+
+    def validate_phone(self, phone):
+        user = User.query.filter_by(phone=phone.data).first()
+        if user is not None:
+            raise ValidationError('Пользователь с таким номером телефона уже есть в системе.')
 
 
 class ResetPasswordRequestForm(FlaskForm):
