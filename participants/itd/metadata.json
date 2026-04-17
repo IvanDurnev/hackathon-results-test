@@ -1,9 +1,9 @@
 {
   "team_name": "ITD",
-  "repo_url": "https://github.com/IvanDurnev/rosatom",
-  "video_url": null,
-  "last_sync": "2026-04-17T20:58:02+00:00",
-  "repo_accessible": true,
+  "repo_url": "",
+  "video_url": "https://github.com/IvanDurnev/rosatom",
+  "last_sync": "2026-04-17T20:59:45+00:00",
+  "repo_accessible": false,
   "last_processed_commit": null,
   "deleted_by_user": false
 }
